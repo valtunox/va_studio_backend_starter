@@ -11,7 +11,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.core.config import settings
+from app.core.settings import settings
 from app.core.database import init_db, close_db
 from app.core.redis import redis_client
 from app.core.logger import logger, setup_logging

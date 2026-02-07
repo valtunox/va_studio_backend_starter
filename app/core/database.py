@@ -16,7 +16,7 @@ from sqlalchemy.ext.asyncio import (
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.pool import NullPool
 
-from app.core.config import settings
+from app.core.settings import settings
 
 
 class Base(DeclarativeBase):

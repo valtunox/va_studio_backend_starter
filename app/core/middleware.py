@@ -11,7 +11,7 @@ from uuid import uuid4
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from app.core.config import settings
+from app.core.settings import settings
 from app.core.logger import get_logger, set_correlation_id
 from app.core.redis import redis_client
 

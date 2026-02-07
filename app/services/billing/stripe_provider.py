@@ -6,7 +6,7 @@ Integration with Stripe for payment processing.
 
 from typing import Optional
 
-from app.core.config import settings
+from app.core.settings import settings
 
 
 class StripeProvider:

@@ -10,7 +10,7 @@ from typing import Any, Optional, Union
 import redis.asyncio as redis
 from redis.asyncio import Redis
 
-from app.core.config import settings
+from app.core.settings import settings
 
 
 class RedisClient:

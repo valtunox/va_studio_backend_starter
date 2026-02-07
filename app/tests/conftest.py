@@ -11,7 +11,7 @@ from sqlalchemy.pool import NullPool
 
 from app.app import app
 from app.core.database import Base, get_db
-from app.core.config import settings
+from app.core.settings import settings
 from app.core.security import get_password_hash
 from app.orm.user import User, UserRole
 

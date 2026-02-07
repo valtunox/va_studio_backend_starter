@@ -6,7 +6,7 @@ Celery app for background task processing.
 
 from celery import Celery
 
-from app.core.config import settings
+from app.core.settings import settings
 
 
 # Create Celery app

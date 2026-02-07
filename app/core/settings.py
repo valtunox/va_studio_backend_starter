@@ -1,5 +1,5 @@
 """
-Application Configuration
+Application Settings
 
 Centralized settings management using Pydantic BaseSettings.
 Supports environment variables and .env files.

@@ -19,7 +19,7 @@ from app.orm.billing import (
     PaymentStatus,
 )
 from app.orm.user import User
-from app.core.config import settings
+from app.core.settings import settings
 
 
 class BillingService:

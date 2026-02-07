@@ -1,6 +1,6 @@
 """Core infrastructure modules."""
 
-from app.core.config import settings
+from app.core.settings import settings
 from app.core.database import get_db, async_session_maker
 from app.core.security import (
     create_access_token,

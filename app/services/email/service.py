@@ -11,7 +11,7 @@ from typing import Optional, List
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
-from app.core.config import settings
+from app.core.settings import settings
 from app.core.logger import get_logger
 
 

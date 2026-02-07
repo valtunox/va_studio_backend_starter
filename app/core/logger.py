@@ -12,7 +12,7 @@ from typing import Any, Optional
 
 import orjson
 
-from app.core.config import settings
+from app.core.settings import settings
 
 
 # Context variable for request correlation ID

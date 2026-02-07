@@ -10,7 +10,7 @@ from typing import Optional, List
 
 from app.orm.user import User
 from app.auth.dependencies import get_current_active_user
-from app.core.config import settings
+from app.core.settings import settings
 
 
 router = APIRouter(prefix="/ai", tags=["AI"])

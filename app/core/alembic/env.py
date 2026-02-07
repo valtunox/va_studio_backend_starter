@@ -16,7 +16,7 @@ from app.orm.project import Project
 from app.orm.billing import Subscription, Payment, Invoice
 from app.orm.blog import Post, Category, Tag
 from app.orm.notification import Notification
-from app.core.config import settings
+from app.core.settings import settings
 
 # Alembic Config object
 config = context.config

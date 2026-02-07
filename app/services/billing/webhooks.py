@@ -9,7 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.core.config import settings
+from app.core.settings import settings
 from app.core.logger import get_logger
 from app.orm.billing import Subscription, SubscriptionStatus
 from app.services.billing.stripe_provider import StripeProvider
