@@ -85,7 +85,7 @@ A production-ready FastAPI backend template for building SaaS applications. Suit
 8. **Start the server**
    ```bash
    make dev
-   # Or: uvicorn app.main:app --reload
+   # Or: uvicorn app.app:app --reload
    ```
 
 9. **Open API documentation**
@@ -111,7 +111,7 @@ docker-compose down
 va_studio_backend_starter/
 ├── app/
 │   ├── __init__.py
-│   ├── main.py                 # FastAPI application
+│   ├── app.py                  # FastAPI application entry point
 │   ├── auth/                   # Authentication module
 │   │   ├── routes.py           # Auth endpoints
 │   │   ├── oauth.py            # OAuth providers
@@ -123,8 +123,11 @@ va_studio_backend_starter/
 │   │   ├── security.py         # JWT & password
 │   │   ├── logger.py           # Logging
 │   │   ├── middleware.py       # Custom middleware
-│   │   └── celery_app.py       # Celery configuration
-│   ├── models/                 # SQLAlchemy models
+│   │   ├── celery_app.py       # Celery configuration
+│   │   └── alembic/            # Database migrations
+│   │       ├── env.py
+│   │       └── versions/
+│   ├── orm/                    # SQLAlchemy ORM models
 │   ├── schemas/                # Pydantic schemas
 │   ├── services/               # Business logic
 │   │   ├── users/
@@ -138,7 +141,6 @@ va_studio_backend_starter/
 │   │   └── ai/                 # AI service stubs
 │   ├── tests/                  # Test suite
 │   └── utils/                  # Utility functions
-├── alembic/                    # Database migrations
 ├── scripts/                    # Utility scripts
 ├── nginx/                      # Nginx configuration
 ├── .github/workflows/          # CI/CD pipeline
@@ -146,6 +148,7 @@ va_studio_backend_starter/
 ├── docker-compose.prod.yml     # Docker production
 ├── Dockerfile
 ├── Makefile
+├── alembic.ini                 # Alembic configuration
 ├── requirements.txt
 └── README.md
 ```

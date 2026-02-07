@@ -45,16 +45,12 @@ help:
 install:
 	$(PIP) install -r requirements.txt
 
-install-dev:
-	$(PIP) install -r requirements-dev.txt
-	pre-commit install
-
 # Development
 dev:
-	uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+	uvicorn app.app:app --reload --host 0.0.0.0 --port 8000
 
 run:
-	uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
+	uvicorn app.app:app --host 0.0.0.0 --port 8000 --workers 4
 
 # Testing
 test:
