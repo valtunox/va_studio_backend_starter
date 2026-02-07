@@ -1,4 +1,4 @@
-"""Database models."""
+"""ORM models for database tables."""
 
 from app.orm.base import Base, TimestampMixin, SoftDeleteMixin
 from app.orm.user import User, UserRole
