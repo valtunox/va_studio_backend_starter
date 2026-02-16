@@ -29,10 +29,11 @@ from app.services.users.routes import router as users_router
 from app.services.projects.routes import router as projects_router
 from app.services.billing.routes import router as billing_router
 from app.services.billing.webhooks import router as webhooks_router
-from app.services.notifications.routes import router as notifications_router
+from app.services.notifications.notifications_services_router import router as notifications_router
 from app.services.analytics.routes import router as analytics_router
 from app.services.blog.routes import router as blog_router
 from app.services.ai.routes import router as ai_router
+from app.services.templates.routes import router as templates_router
 
 
 @asynccontextmanager
@@ -148,6 +149,7 @@ app.include_router(notifications_router, prefix=settings.API_V1_PREFIX)
 app.include_router(analytics_router, prefix=settings.API_V1_PREFIX)
 app.include_router(blog_router, prefix=settings.API_V1_PREFIX)
 app.include_router(ai_router, prefix=settings.API_V1_PREFIX)
+app.include_router(templates_router, prefix=settings.API_V1_PREFIX)
 
 
 # Application entry point

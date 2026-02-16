@@ -7,7 +7,7 @@ services:
       dockerfile: Dockerfile
     container_name: va_studio_backend
     ports:
-      - "8000:8000"
+      - "5112:5112"
     environment:
       - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/va_studio
       - REDIS_URL=redis://redis:6379/0

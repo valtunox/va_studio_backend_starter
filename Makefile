@@ -47,10 +47,10 @@ install:
 
 # Development
 dev:
-	uvicorn app.app:app --reload --host 0.0.0.0 --port 8000
+	uvicorn app.app:app --reload --host 0.0.0.0 --port 5112
 
 run:
-	uvicorn app.app:app --host 0.0.0.0 --port 8000 --workers 4
+	uvicorn app.app:app --host 0.0.0.0 --port 5112 --workers 4
 
 # Testing
 test:

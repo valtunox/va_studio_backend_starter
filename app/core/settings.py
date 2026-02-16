@@ -41,7 +41,7 @@ class Settings(BaseSettings):
 
     # Server
     HOST: str = "0.0.0.0"
-    PORT: int = 8000
+    PORT: int = 5112
     WORKERS: int = 4
     RELOAD: bool = True
 
@@ -57,10 +57,12 @@ class Settings(BaseSettings):
 
     # CORS
     CORS_ORIGINS: List[str] = [
+        "http://localhost:3008",
+        "http://localhost:5112",
+        "http://127.0.0.1:3008",
+        "http://127.0.0.1:5112",
         "http://localhost:3000",
-        "http://localhost:8000",
         "http://127.0.0.1:3000",
-        "http://127.0.0.1:8000",
     ]
     CORS_ALLOW_CREDENTIALS: bool = True
     CORS_ALLOW_METHODS: List[str] = ["*"]
@@ -107,7 +109,7 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_SECRET: Optional[str] = None
     GITHUB_CLIENT_ID: Optional[str] = None
     GITHUB_CLIENT_SECRET: Optional[str] = None
-    OAUTH_REDIRECT_URL: str = "http://localhost:3000/auth/callback"
+    OAUTH_REDIRECT_URL: str = "http://localhost:3008/auth/callback"
 
     # File Storage
     UPLOAD_DIR: str = "uploads"
