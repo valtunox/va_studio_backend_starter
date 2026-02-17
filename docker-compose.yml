@@ -1,131 +1,41 @@
-version: "3.9"
-
 services:
-  app:
+  fastapi:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: va_studio_backend
+    container_name: studioapp-api
+    image: ${DOCKER_IMAGE:-studioapp-api:latest}
     ports:
-      - "5112:5112"
-    environment:
-      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/va_studio
-      - REDIS_URL=redis://redis:6379/0
-      - CELERY_BROKER_URL=redis://redis:6379/1
-      - CELERY_RESULT_BACKEND=redis://redis:6379/2
-      - DEBUG=true
-      - ENVIRONMENT=development
-    volumes:
-      - ./app:/app/app:ro
-      - ./uploads:/app/uploads
-      - ./logs:/app/logs
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+      - "${PORT:-5112}:5112"
     networks:
-      - va_network
-    restart: unless-stopped
-
-  db:
-    image: postgres:16-alpine
-    container_name: va_studio_db
+      - studioapp-network
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=va_studio
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - ENVIRONMENT=${ENVIRONMENT:-production}
+      - PORT=5112
+      - HOST=0.0.0.0
+      - DATABASE_HOST=${DATABASE_HOST}
+      - DATABASE_PORT=${DATABASE_PORT:-5432}
+      - DATABASE_NAME=${DATABASE_NAME}
+      - DATABASE_USER=${DATABASE_USER:-postgres}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD:-postgres}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - APOLLO_API_KEY=${APOLLO_API_KEY}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${AWS_REGION:-us-east-1}
+      - S3_BUCKET=${S3_BUCKET}
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - va_network
-    restart: unless-stopped
-
-  redis:
-    image: redis:7-alpine
-    container_name: va_studio_redis
-    ports:
-      - "6379:6379"
+      test: ["CMD", "curl", "-f", "http://localhost:5112/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
     volumes:
-      - redis_data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - va_network
-    restart: unless-stopped
-
-  celery_worker:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: va_studio_celery_worker
-    command: celery -A app.core.celery_app worker --loglevel=info
-    environment:
-      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/va_studio
-      - REDIS_URL=redis://redis:6379/0
-      - CELERY_BROKER_URL=redis://redis:6379/1
-      - CELERY_RESULT_BACKEND=redis://redis:6379/2
-    volumes:
-      - ./app:/app/app:ro
-    depends_on:
-      - db
-      - redis
-    networks:
-      - va_network
-    restart: unless-stopped
-
-  celery_beat:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: va_studio_celery_beat
-    command: celery -A app.core.celery_app beat --loglevel=info
-    environment:
-      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/va_studio
-      - REDIS_URL=redis://redis:6379/0
-      - CELERY_BROKER_URL=redis://redis:6379/1
-      - CELERY_RESULT_BACKEND=redis://redis:6379/2
-    volumes:
-      - ./app:/app/app:ro
-    depends_on:
-      - db
-      - redis
-    networks:
-      - va_network
-    restart: unless-stopped
-
-  flower:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: va_studio_flower
-    command: celery -A app.core.celery_app flower --port=5555
-    ports:
-      - "5555:5555"
-    environment:
-      - CELERY_BROKER_URL=redis://redis:6379/1
-      - CELERY_RESULT_BACKEND=redis://redis:6379/2
-    depends_on:
-      - redis
-      - celery_worker
-    networks:
-      - va_network
+      - ./app/data:/app/data
     restart: unless-stopped
 
 networks:
-  va_network:
+  studioapp-network:
     driver: bridge
-
-volumes:
-  postgres_data:
-  redis_data:

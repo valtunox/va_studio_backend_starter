@@ -1,0 +1,198 @@
+name: Database Restore Workflow
+
+# Define when this workflow should run
+on:
+  # Only run when manually triggered (no scheduled runs)
+  workflow_dispatch:
+    inputs:
+      backup_file:
+        description: 'Path to backup file (default: studiosaas_latest_updated.sql)'
+        required: false
+        default: 'app/data/backups/postgres/studiosaas_latest_updated.sql'
+      database:
+        description: 'Database name'
+        required: false
+        default: 'studiosaas'
+      host:
+        description: 'Database host'
+        required: false
+        default: 'studio-db.valtunox.com'
+      port:
+        description: 'Database port'
+        required: false
+        default: '5432'
+      skip_migration:
+        description: 'Skip migration step (run restore only)'
+        required: false
+        default: 'false'
+      clean:
+        description: 'Clean (drop) database objects before restoring'
+        required: false
+        default: 'false'
+
+# Define the jobs to run
+jobs:
+  restore-database:
+    runs-on: ubuntu-latest
+    
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Step 2: Set up Python 3.12
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      # Step 3: Install Python dependencies
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # Step 4: Install PostgreSQL client tools
+      - name: Install PostgreSQL client tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      # Step 5: Run migration.py first (unless skipped)
+      - name: Run database migration
+        if: github.event.inputs.skip_migration != 'true'
+        env:
+          POSTGRES_HOST: ${{ github.event.inputs.host || 'studio-db.valtunox.com' }}
+          POSTGRES_PORT: ${{ github.event.inputs.port || '5432' }}
+          POSTGRES_DB: ${{ github.event.inputs.database || 'studiosaas' }}
+          POSTGRES_USER: ${{ secrets.DB_USER || 'postgres' }}
+          POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD || 'postgres' }}
+        run: |
+          echo "🔄 Running database migration..."
+          python scripts/migration.py
+          echo "✅ Database migration completed successfully"
+
+      # Step 6: Verify backup file exists or download from S3
+      - name: Check backup file or download from S3
+        id: backup_check
+        run: |
+          BACKUP_FILE="${{ github.event.inputs.backup_file || 'app/data/backups/postgres/studiosaas_latest_updated.sql' }}"
+          
+          if [ -f "$BACKUP_FILE" ]; then
+            echo "✅ Backup file found locally: $BACKUP_FILE"
+            echo "backup_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "⚠️  Backup file not found locally: $BACKUP_FILE"
+            echo "backup_exists=false" >> $GITHUB_OUTPUT
+            echo ""
+            echo "💡 To restore from S3, you can download the file first or provide the S3 path."
+          fi
+
+      # Step 7: Configure AWS credentials (for S3 download if needed)
+      - name: Configure AWS credentials
+        if: steps.backup_check.outputs.backup_exists == 'false'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      # Step 8: Download backup from S3 if not found locally
+      - name: Download backup from S3 (if needed)
+        if: steps.backup_check.outputs.backup_exists == 'false'
+        run: |
+          BACKUP_FILE="${{ github.event.inputs.backup_file || 'app/data/backups/postgres/studiosaas_latest_updated.sql' }}"
+          BACKUP_DIR=$(dirname "$BACKUP_FILE")
+          
+          # Create backup directory if it doesn't exist
+          mkdir -p "$BACKUP_DIR"
+          
+          # Try to download from S3 (adjust bucket and prefix as needed)
+          S3_BUCKET="${S3_BUCKET:-data.valtunox.com}"
+          S3_PREFIX="${S3_PREFIX:-backups}"
+          BACKUP_FILENAME=$(basename "$BACKUP_FILE")
+          
+          echo "📥 Attempting to download backup from S3..."
+          if aws s3 cp "s3://${S3_BUCKET}/${S3_PREFIX}/${BACKUP_FILENAME}" "$BACKUP_FILE"; then
+            echo "✅ Successfully downloaded backup from S3"
+          else
+            echo "❌ Failed to download backup from S3"
+            echo "⚠️  Please ensure the backup file exists locally or provide correct S3 path"
+            exit 1
+          fi
+
+      # Step 9: Run the database restore script
+      - name: Run database restore script
+        env:
+          POSTGRES_HOST: ${{ github.event.inputs.host || 'studio-db.valtunox.com' }}
+          POSTGRES_PORT: ${{ github.event.inputs.port || '5432' }}
+          POSTGRES_DB: ${{ github.event.inputs.database || 'studiosaas' }}
+          POSTGRES_USER: ${{ secrets.DB_USER || 'postgres' }}
+          POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD || 'postgres' }}
+        run: |
+          echo "📦 Starting database restore..."
+          
+          BACKUP_FILE="${{ github.event.inputs.backup_file || 'app/data/backups/postgres/studiosaas_latest_updated.sql' }}"
+          CLEAN_FLAG=""
+          
+          if [ "${{ github.event.inputs.clean }}" = "true" ]; then
+            CLEAN_FLAG="--clean"
+            echo "⚠️  WARNING: --clean flag is set. This will drop existing database objects!"
+          fi
+          
+          python scripts/restore_database.py \
+            --backup-file "$BACKUP_FILE" \
+            --database ${{ github.event.inputs.database || 'studiosaas' }} \
+            --host ${{ github.event.inputs.host || 'studio-db.valtunox.com' }} \
+            --port ${{ github.event.inputs.port || '5432' }} \
+            --user ${{ secrets.DB_USER || 'postgres' }} \
+            --password ${{ secrets.DB_PASSWORD || 'postgres' }} \
+            $CLEAN_FLAG
+          
+          echo "✅ Database restore completed successfully"
+
+      # Step 10: Restore Summary
+      - name: Restore Summary
+        if: success()
+        run: |
+          echo "## 🔄 Database Restore Completed Successfully" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Database:** ${{ github.event.inputs.database || 'studiosaas' }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Host:** ${{ github.event.inputs.host || 'studio-db.valtunox.com' }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Backup File:** ${{ github.event.inputs.backup_file || 'app/data/backups/postgres/studiosaas_latest_updated.sql' }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Migration Run:** ${{ github.event.inputs.skip_migration != 'true' }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Restore Time:** $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### ✅ Steps Completed:" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ github.event.inputs.skip_migration }}" != "true" ]; then
+            echo "1. ✅ Database migration executed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "1. ⏭️  Database migration skipped" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "2. ✅ Database restore executed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📋 Notes:" >> $GITHUB_STEP_SUMMARY
+          echo "- The database has been restored from the backup file" >> $GITHUB_STEP_SUMMARY
+          echo "- Default backup file: \`studiosaas_latest_updated.sql\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Migration ensures schema is up-to-date before restore" >> $GITHUB_STEP_SUMMARY
+
+      - name: Send failure notification
+        if: failure()
+        run: |
+          echo "## ❌ Database Restore Failed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Database:** ${{ github.event.inputs.database || 'studiosaas' }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Backup File:** ${{ github.event.inputs.backup_file || 'app/data/backups/postgres/studiosaas_latest_updated.sql' }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Time:** $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Please check the workflow logs for details." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔍 Troubleshooting:" >> $GITHUB_STEP_SUMMARY
+          echo "1. Verify the backup file exists" >> $GITHUB_STEP_SUMMARY
+          echo "2. Check database connection settings" >> $GITHUB_STEP_SUMMARY
+          echo "3. Ensure PostgreSQL client tools are installed" >> $GITHUB_STEP_SUMMARY
+          echo "4. Verify database credentials in GitHub secrets" >> $GITHUB_STEP_SUMMARY
+

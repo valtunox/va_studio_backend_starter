@@ -1,0 +1,105 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+*.egg-info/
+node_modules/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Git
+.git/
+.gitignore
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Nginx (not needed in FastAPI container)
+nginx/
+
+# Deploy/build artifacts (not needed inside the image)
+deploy/
+
+# Tests
+tests/
+
+# Backups (root and app/data — avoid copying DB dumps/sql into image)
+backups/
+app/data/backups/
+app/data/backups
+
+# Documentation
+README.md
+*.md
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Scripts (CLI/admin only; app does not import from scripts at runtime)
+scripts/
+*.bat
+*.sh
+bin/
+
+# Large data files (can mount as volume if needed)
+data/leads/
+data/model/
+data/vectorstore/
+# Image documentation
+image/
+
+# Exclude stray files that might interfere with pip
+=*
+.*~
+venv
+./windows-venv
+windows-venv
+./docs
+./deploy_zone_1.sh
+./deploy_zone_2.sh
+./deploy_zone_3.sh
+./deploy_zone_4.sh
+./deployment
+./fix
+fix
+
+# SSH Keys and PEM files (NEVER commit these!)
+*.pem
+*.key
+*.pem.key
+./bin
+bin
+__pycache__
+.github
+logs
+./logs
+
+models
+./models
+./app/data/vectorstore
+app/data/vectorstore
+*.csv
+app/exports
+exports/
+docs
+app/data/model
+app/data/backups
+
+# app/data - allow .html files, ignore csv/excel/models
+app/data/*.csv
+app/data/*.xlsx
+app/data/*.xls
+app/data/models/

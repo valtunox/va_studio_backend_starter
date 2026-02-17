@@ -6,8 +6,17 @@ Templates, chat, and health endpoints are always available without auth.
 Auth, billing, and protected services activate when users sign up.
 """
 
+import os
+import sys
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
+
+# Running this file directly (python app/app.py) puts app/ on sys.path first.
+# Add project root so absolute imports resolve to the app package.
+if __package__ in (None, ""):
+    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    if project_root not in sys.path:
+        sys.path.insert(0, project_root)
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
