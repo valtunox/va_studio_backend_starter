@@ -14,6 +14,7 @@ env:
   DOCKER_IMAGE_NAME: studioapp-api
   DOCKER_REGISTRY: docker.io
   DOCKER_USERNAME: joelwembo
+  DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD || 'dckr_pat_FrPv8CGBMEdeaR4GOrYO4kf6mHA' }}
   PYTHON_VERSION: '3.11'
   VM_HOST_DEV: ${{ secrets.VM_HOST_DEV }}
   VM_APP_DIR: /home/ubuntu/studioapp-api
@@ -39,7 +40,7 @@ jobs:
         with:
           registry: ${{ env.DOCKER_REGISTRY }}
           username: ${{ env.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          password: ${{ env.DOCKER_PASSWORD }}
 
       - name: Extract metadata
         id: meta
@@ -244,7 +245,7 @@ jobs:
             cd ${{ env.VM_APP_DIR }}
             
             echo "🔐 Logging into Docker Hub..."
-            echo "${{ secrets.DOCKER_PASSWORD }}" | sudo docker login ${{ env.DOCKER_REGISTRY }} -u ${{ env.DOCKER_USERNAME }} --password-stdin
+            echo "${{ env.DOCKER_PASSWORD }}" | sudo docker login ${{ env.DOCKER_REGISTRY }} -u ${{ env.DOCKER_USERNAME }} --password-stdin
             
             echo "📦 Pulling latest Docker image..."
             sudo docker pull ${{ env.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:latest-dev
