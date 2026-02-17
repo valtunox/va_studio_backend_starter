@@ -92,37 +92,37 @@ jobs:
           fi
 
       # Step 7: Configure AWS credentials (for S3 download if needed)
-      - name: Configure AWS credentials
-        if: steps.backup_check.outputs.backup_exists == 'false'
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
+      # - name: Configure AWS credentials
+      #   if: steps.backup_check.outputs.backup_exists == 'false'
+      #   uses: aws-actions/configure-aws-credentials@v4
+      #   with:
+      #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      #     aws-region: us-east-1
 
       # Step 8: Download backup from S3 if not found locally
-      - name: Download backup from S3 (if needed)
-        if: steps.backup_check.outputs.backup_exists == 'false'
-        run: |
-          BACKUP_FILE="${{ github.event.inputs.backup_file || 'app/data/backups/postgres/studiosaas_latest_updated.sql' }}"
-          BACKUP_DIR=$(dirname "$BACKUP_FILE")
-          
-          # Create backup directory if it doesn't exist
-          mkdir -p "$BACKUP_DIR"
-          
-          # Try to download from S3 (adjust bucket and prefix as needed)
-          S3_BUCKET="${S3_BUCKET:-data.valtunox.com}"
-          S3_PREFIX="${S3_PREFIX:-backups}"
-          BACKUP_FILENAME=$(basename "$BACKUP_FILE")
-          
-          echo "📥 Attempting to download backup from S3..."
-          if aws s3 cp "s3://${S3_BUCKET}/${S3_PREFIX}/${BACKUP_FILENAME}" "$BACKUP_FILE"; then
-            echo "✅ Successfully downloaded backup from S3"
-          else
-            echo "❌ Failed to download backup from S3"
-            echo "⚠️  Please ensure the backup file exists locally or provide correct S3 path"
-            exit 1
-          fi
+      # - name: Download backup from S3 (if needed)
+      #   if: steps.backup_check.outputs.backup_exists == 'false'
+      #   run: |
+      #     BACKUP_FILE="${{ github.event.inputs.backup_file || 'app/data/backups/postgres/studiosaas_latest_updated.sql' }}"
+      #     BACKUP_DIR=$(dirname "$BACKUP_FILE")
+      #     
+      #     # Create backup directory if it doesn't exist
+      #     mkdir -p "$BACKUP_DIR"
+      #     
+      #     # Try to download from S3 (adjust bucket and prefix as needed)
+      #     S3_BUCKET="${S3_BUCKET:-data.valtunox.com}"
+      #     S3_PREFIX="${S3_PREFIX:-backups}"
+      #     BACKUP_FILENAME=$(basename "$BACKUP_FILE")
+      #     
+      #     echo "📥 Attempting to download backup from S3..."
+      #     if aws s3 cp "s3://${S3_BUCKET}/${S3_PREFIX}/${BACKUP_FILENAME}" "$BACKUP_FILE"; then
+      #       echo "✅ Successfully downloaded backup from S3"
+      #     else
+      #       echo "❌ Failed to download backup from S3"
+      #       echo "⚠️  Please ensure the backup file exists locally or provide correct S3 path"
+      #       exit 1
+      #     fi
 
       # Step 9: Run the database restore script
       - name: Run database restore script
