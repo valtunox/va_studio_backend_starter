@@ -50,6 +50,8 @@ class ServiceLoader:
         "ecommerce": ("app.services.ecommerce.routes", "router"),
         "crm": ("app.services.crm.routes", "router"),
         "erp": ("app.services.erp.routes", "router"),
+        "leads": ("app.services.leads.routes", "router"),
+        "candidates": ("app.services.candidates.routes", "router"),
     }
     
     def __init__(self):

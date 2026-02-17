@@ -26,6 +26,8 @@ class TemplateType(str, Enum):
     ERP = "erp"
     SOCIAL = "social"
     DASHBOARD = "dashboard"
+    LEADS = "leads"
+    CANDIDATES = "candidates"
 
 
 @dataclass
@@ -284,6 +286,68 @@ template_configs: Dict[TemplateType, TemplateConfig] = {
             "enable_data_sources": True,
             "enable_scheduled_reports": True,
             "enable_exports": True,
+        },
+        requires_redis=True,
+        requires_celery=True,
+        requires_billing=True,
+    ),
+    
+    TemplateType.LEADS: TemplateConfig(
+        name="Leads Management Template",
+        description="Lead management with scoring, source tracking, conversion funnel, and pipeline visualization",
+        required_services=[
+            "auth",
+            "users",
+            "analytics",
+            "ai",
+            "notifications",
+            "health",
+        ],
+        required_middleware=[
+            "rate_limit",
+            "security_headers",
+            "request_logging",
+        ],
+        feature_flags={
+            "enable_billing": True,
+            "enable_subscriptions": True,
+            "enable_leads": True,
+            "enable_lead_scoring": True,
+            "enable_lead_sources": True,
+            "enable_pipeline": True,
+            "enable_activities": True,
+            "enable_reports": True,
+        },
+        requires_redis=True,
+        requires_celery=True,
+        requires_billing=True,
+    ),
+    
+    TemplateType.CANDIDATES: TemplateConfig(
+        name="Recruitment Template",
+        description="Recruitment dashboard with candidate tracking, hiring pipeline, and interview scheduling",
+        required_services=[
+            "auth",
+            "users",
+            "analytics",
+            "ai",
+            "notifications",
+            "health",
+        ],
+        required_middleware=[
+            "rate_limit",
+            "security_headers",
+            "request_logging",
+        ],
+        feature_flags={
+            "enable_billing": True,
+            "enable_subscriptions": True,
+            "enable_candidates": True,
+            "enable_jobs": True,
+            "enable_interviews": True,
+            "enable_pipeline": True,
+            "enable_reports": True,
+            "enable_team_management": True,
         },
         requires_redis=True,
         requires_celery=True,
