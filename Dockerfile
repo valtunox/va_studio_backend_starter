@@ -41,9 +41,6 @@ RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
 RUN playwright install chromium  && \
     playwright install-deps chromium
 
-# Copy .env file
-COPY .env .env
-
 # Copy application code
 COPY . .
 
