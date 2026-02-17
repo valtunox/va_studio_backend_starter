@@ -10,13 +10,15 @@ from typing import Optional, Dict, Any, List
 from fastapi import APIRouter
 
 from app.core.settings import settings
-from app.core.logger import logger
+from app.core.logger import get_logger
 from app.templates.registry import (
     TemplateType,
     TemplateConfig,
     template_registry,
     template_configs,
 )
+
+logger = get_logger(__name__)
 
 
 class ServiceLoader:

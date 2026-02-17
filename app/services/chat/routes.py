@@ -20,7 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.settings import settings
 from app.core.redis import redis_client
-from app.core.logger import logger
+from app.core.logger import get_logger
 from app.auth.dependencies import get_optional_user
 from app.orm.user import User
 
@@ -36,6 +36,8 @@ from .schemas import (
     TemplateRequestResponse,
     TemplateRequestStatus,
 )
+
+logger = get_logger(__name__)
 
 
 router = APIRouter(prefix="/chat", tags=["Chat (Public)"])

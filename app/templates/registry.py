@@ -11,7 +11,9 @@ from dataclasses import dataclass, field
 from fastapi import APIRouter
 
 from app.core.settings import settings
-from app.core.logger import logger
+from app.core.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class TemplateType(str, Enum):

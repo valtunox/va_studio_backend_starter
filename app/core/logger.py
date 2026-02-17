@@ -50,6 +50,7 @@ _INTERNAL_CONTEXT_FIELDS = {
     "source_path",
     "hostname",
     "environment",
+    "app_name",
 }
 
 
@@ -118,6 +119,7 @@ class ContextFilter(logging.Filter):
         record.source_path = _relative_source_path(record.pathname)
         record.hostname = HOSTNAME
         record.environment = settings.ENVIRONMENT.value
+        record.app_name = settings.APP_NAME
         return True
 
 
@@ -130,6 +132,7 @@ class JSONFormatter(logging.Formatter):
                 record.created,
                 tz=timezone.utc,
             ).isoformat(),
+            "app": getattr(record, "app_name", settings.APP_NAME),
             "level": record.levelname,
             "logger": record.name,
             "message": record.getMessage(),
@@ -174,6 +177,10 @@ class DetailedFormatter(logging.Formatter):
         level = f"{record.levelname:<8}"
         source = f"{getattr(record, 'source_path', _relative_source_path(record.pathname))}:{record.lineno}"
         correlation = getattr(record, "correlation_short", "-")
+        app_env = (
+            f" [app={getattr(record, 'app_name', settings.APP_NAME)} "
+            f"env={getattr(record, 'environment', settings.ENVIRONMENT.value)}]"
+        )
 
         line = (
             f"{self._paint(timestamp, ANSI_DIM)} "
@@ -182,6 +189,7 @@ class DetailedFormatter(logging.Formatter):
             f"{self._paint(source, SOURCE_COLOR)} "
             f"{self._paint(f'cid={correlation}', CORRELATION_COLOR)} "
             f"{record.getMessage()}"
+            f"{self._paint(app_env, ANSI_DIM)}"
             f"{self._paint(f' [pid={record.process} thread={record.threadName}]', ANSI_DIM)}"
         )
 
@@ -218,7 +226,9 @@ def setup_logging() -> None:
     console_handler.setLevel(log_level)
     console_handler.addFilter(context_filter)
 
-    if log_format == "json":
+    if log_format == "json" and settings.is_development and _supports_color(sys.stdout):
+        console_handler.setFormatter(DetailedFormatter(use_color=True))
+    elif log_format == "json":
         console_handler.setFormatter(JSONFormatter())
     elif log_format in {"plain", "standard", "text"}:
         console_handler.setFormatter(DetailedFormatter(use_color=False))

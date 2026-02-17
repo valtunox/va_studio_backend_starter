@@ -14,8 +14,10 @@ from pydantic import BaseModel
 from datetime import datetime
 from enum import Enum
 
-from app.core.logger import logger
+from app.core.logger import get_logger
 from app.templates.service_loader import get_service_loader
+
+logger = get_logger(__name__)
 
 router = APIRouter(prefix="/saas", tags=["SaaS"])
 
@@ -284,7 +286,7 @@ async def cancel_subscription(subscription_id: str, at_period_end: bool = True):
 
 @router.post("/webhooks", response_model=WebhookEndpoint)
 async def create_webhook(webhook: WebhookCreate, tenant_id: str):
-    """Create a webhook endpoint for tenant.""""
+    """Create a webhook endpoint for tenant."""
     if tenant_id not in _tenants:
         raise HTTPException(status_code=404, detail="Tenant not found")
     
