@@ -21,27 +21,21 @@ from app.core.middleware import (
     SecurityHeadersMiddleware,
 )
 
-# Import routers
-from app.auth.routes import router as auth_router
-from app.auth.oauth import router as oauth_router
-from app.services.health.routes import router as health_router
-from app.services.users.routes import router as users_router
-from app.services.projects.routes import router as projects_router
-from app.services.billing.routes import router as billing_router
-from app.services.billing.webhooks import router as webhooks_router
-from app.services.notifications.notifications_services_router import router as notifications_router
-from app.services.analytics.routes import router as analytics_router
-from app.services.blog.routes import router as blog_router
-from app.services.ai.routes import router as ai_router
-from app.services.templates.routes import router as templates_router
+from app.templates.service_loader import get_service_loader, ServiceLoader
+from app.templates.registry import TemplateType
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator:
     """Application lifespan manager."""
-    # Startup
+    # Get service loader
+    service_loader = get_service_loader()
+    template_info = service_loader.get_template_info()
+    
     logger.info(f"Starting {settings.APP_NAME} v{settings.APP_VERSION}")
     logger.info(f"Environment: {settings.ENVIRONMENT.value}")
+    logger.info(f"Template: {template_info['name']} ({template_info['type']})")
+    logger.info(f"Enabled services: {', '.join(template_info['required_services'])}")
 
     # Initialize database
     try:
@@ -50,24 +44,32 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
     except Exception as e:
         logger.error(f"Database initialization failed: {e}")
 
-    # Initialize Redis
-    try:
-        await redis_client.connect()
-        logger.info("Redis connected")
-    except Exception as e:
-        logger.warning(f"Redis connection failed: {e}")
+    # Initialize Redis (if required)
+    if service_loader.requires_redis():
+        try:
+            await redis_client.connect()
+            logger.info("Redis connected")
+        except Exception as e:
+            logger.warning(f"Redis connection failed: {e}")
+    else:
+        logger.info("Redis not required for current template")
 
+    # Initialize Celery (if required)
+    if service_loader.requires_celery():
+        logger.info("Celery worker integration enabled")
+    
     yield
 
     # Shutdown
     logger.info("Shutting down application...")
 
-    # Close Redis
-    try:
-        await redis_client.disconnect()
-        logger.info("Redis disconnected")
-    except Exception:
-        pass
+    # Close Redis (if used)
+    if service_loader.requires_redis():
+        try:
+            await redis_client.disconnect()
+            logger.info("Redis disconnected")
+        except Exception:
+            pass
 
     # Close database
     try:
@@ -128,28 +130,44 @@ async def global_exception_handler(request: Request, exc: Exception):
 @app.get("/", tags=["Root"])
 async def root():
     """Root endpoint with API information."""
-    return {
+    service_loader = get_service_loader()
+    template_info = service_loader.get_template_info()
+    
+    response = {
         "name": settings.APP_NAME,
         "version": settings.APP_VERSION,
         "description": settings.APP_DESCRIPTION,
+        "template": {
+            "type": template_info["type"],
+            "name": template_info["name"],
+            "description": template_info["description"],
+        },
         "docs": "/docs" if settings.ENABLE_DOCS else None,
         "health": "/health",
+        "features": template_info["feature_flags"],
     }
+    
+    if settings.DEBUG:
+        response["debug_info"] = {
+            "required_services": template_info["required_services"],
+            "requires_redis": template_info["requires_redis"],
+            "requires_celery": template_info["requires_celery"],
+            "requires_billing": template_info["requires_billing"],
+        }
+    
+    return response
 
 
-# Include routers
-app.include_router(health_router)
-app.include_router(auth_router, prefix=settings.API_V1_PREFIX)
-app.include_router(oauth_router, prefix=settings.API_V1_PREFIX)
-app.include_router(users_router, prefix=settings.API_V1_PREFIX)
-app.include_router(projects_router, prefix=settings.API_V1_PREFIX)
-app.include_router(billing_router, prefix=settings.API_V1_PREFIX)
-app.include_router(webhooks_router, prefix=settings.API_V1_PREFIX)
-app.include_router(notifications_router, prefix=settings.API_V1_PREFIX)
-app.include_router(analytics_router, prefix=settings.API_V1_PREFIX)
-app.include_router(blog_router, prefix=settings.API_V1_PREFIX)
-app.include_router(ai_router, prefix=settings.API_V1_PREFIX)
-app.include_router(templates_router, prefix=settings.API_V1_PREFIX)
+# Get service loader and load required routers
+service_loader = get_service_loader()
+routers = service_loader.load_required_routers()
+
+# Include routers dynamically
+for service_name, router in routers.items():
+    app.include_router(router, prefix=settings.API_V1_PREFIX)
+    logger.debug(f"Included router: {service_name}")
+
+logger.info(f"Loaded {len(routers)} service routers for template: {service_loader.get_template_type().value}")
 
 
 # Application entry point

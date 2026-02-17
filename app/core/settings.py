@@ -38,6 +38,9 @@ class Settings(BaseSettings):
     DEBUG: bool = False
     ENVIRONMENT: Environment = Environment.DEVELOPMENT
     API_V1_PREFIX: str = "/api/v1"
+    
+    # Template Configuration
+    TEMPLATE_TYPE: str = "saas"  # Options: saas, portfolio, ecommerce, blog, crm, erp"
 
     # Server
     HOST: str = "0.0.0.0"
