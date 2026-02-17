@@ -25,7 +25,7 @@ from fastapi.responses import JSONResponse
 from app.core.settings import settings
 from app.core.database import init_db, close_db
 from app.core.redis import redis_client
-from app.core.logger import logger, setup_logging
+from app.core.logger import get_logger
 from app.core.middleware import (
     RequestLoggingMiddleware,
     RateLimitMiddleware,
@@ -34,6 +34,8 @@ from app.core.middleware import (
 
 from app.templates.service_loader import get_service_loader, ServiceLoader
 from app.templates.registry import TemplateType
+
+logger = get_logger(__name__)
 
 
 @asynccontextmanager
@@ -173,6 +175,29 @@ async def root():
     return response
 
 
+# Health check endpoint
+@app.get("/health", tags=["Health"])
+async def health_check():
+    """Health check endpoint - always public, no auth required."""
+    health = {
+        "status": "healthy",
+        "version": settings.APP_VERSION,
+        "environment": settings.ENVIRONMENT.value,
+    }
+
+    # Check Redis connectivity
+    try:
+        if redis_client._client:
+            await redis_client._client.ping()
+            health["redis"] = "connected"
+        else:
+            health["redis"] = "not configured"
+    except Exception:
+        health["redis"] = "disconnected"
+
+    return health
+
+
 # Get service loader and load required routers
 service_loader = get_service_loader()
 routers = service_loader.load_required_routers()
@@ -183,6 +208,14 @@ for service_name, router in routers.items():
     logger.debug(f"Included router: {service_name}")
 
 logger.info(f"Loaded {len(routers)} service routers for template: {service_loader.get_template_type().value}")
+
+# Register custom Swagger admin endpoints (/swagger, /swagger/redoc)
+try:
+    from app.auth.admin import register_swagger_admin
+    register_swagger_admin(app)
+    logger.debug("Custom Swagger admin endpoints registered at /swagger")
+except ImportError:
+    pass
 
 
 # Application entry point
