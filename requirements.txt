@@ -33,6 +33,9 @@ jinja2>=3.1.0
 # Stripe (optional - for billing)
 stripe>=7.0.0
 
+# Web Scraping
+playwright>=1.40.0
+
 # Utilities
 python-multipart>=0.0.6
 python-dotenv>=1.0.0
