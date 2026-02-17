@@ -22,8 +22,16 @@ from app.templates.registry import (
 class ServiceLoader:
     """Dynamic service loader for template-specific services."""
     
+    # Public services — always loaded, no auth required
+    PUBLIC_SERVICES = ["health", "templates", "chat"]
+
     # Service module mappings
     SERVICE_MODULES = {
+        # Public services (no auth)
+        "health": ("app.services.health.routes", "router"),
+        "templates": ("app.services.templates.routes", "router"),
+        "chat": ("app.services.chat.routes", "router"),
+        # Auth services (loaded when template requires them)
         "auth": ("app.auth.routes", "router"),
         "oauth": ("app.auth.oauth", "router"),
         "users": ("app.services.users.routes", "router"),
@@ -34,8 +42,6 @@ class ServiceLoader:
         "analytics": ("app.services.analytics.routes", "router"),
         "blog": ("app.services.blog.routes", "router"),
         "ai": ("app.services.ai.routes", "router"),
-        "health": ("app.services.health.routes", "router"),
-        "templates": ("app.services.templates.routes", "router"),
         # Template-specific services
         "saas": ("app.services.saas.core.routes", "router"),
         "portfolio": ("app.services.portfolio.routes", "router"),
@@ -101,18 +107,25 @@ class ServiceLoader:
         """Load all routers required for the current template."""
         routers = {}
         
-        # Always load core services
-        core_services = ["health", "auth", "oauth"]
-        for service in core_services:
+        # Always load public services first (no auth required)
+        for service in self.PUBLIC_SERVICES:
+            router = self.load_router(service)
+            if router:
+                routers[service] = router
+        
+        # Load auth services (still available, just not required for public access)
+        auth_services = ["auth", "oauth"]
+        for service in auth_services:
             router = self.load_router(service)
             if router:
                 routers[service] = router
         
         # Load template-specific services
         for service_name in self._template_config.required_services:
-            router = self.load_router(service_name)
-            if router:
-                routers[service_name] = router
+            if service_name not in routers:
+                router = self.load_router(service_name)
+                if router:
+                    routers[service_name] = router
         
         # Load optional services based on feature flags
         if self._template_config.requires_billing:

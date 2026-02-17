@@ -1,7 +1,9 @@
 """
 VA Studio Backend - Main Application
 
-A production-ready FastAPI backend template for building SaaS applications.
+A production-ready FastAPI backend with a public-first architecture.
+Templates, chat, and health endpoints are always available without auth.
+Auth, billing, and protected services activate when users sign up.
 """
 
 from contextlib import asynccontextmanager
@@ -44,15 +46,12 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
     except Exception as e:
         logger.error(f"Database initialization failed: {e}")
 
-    # Initialize Redis (if required)
-    if service_loader.requires_redis():
-        try:
-            await redis_client.connect()
-            logger.info("Redis connected")
-        except Exception as e:
-            logger.warning(f"Redis connection failed: {e}")
-    else:
-        logger.info("Redis not required for current template")
+    # Initialize Redis (always needed for public chat sessions + caching)
+    try:
+        await redis_client.connect()
+        logger.info("Redis connected")
+    except Exception as e:
+        logger.warning(f"Redis connection failed (chat sessions will be unavailable): {e}")
 
     # Initialize Celery (if required)
     if service_loader.requires_celery():
@@ -63,13 +62,12 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
     # Shutdown
     logger.info("Shutting down application...")
 
-    # Close Redis (if used)
-    if service_loader.requires_redis():
-        try:
-            await redis_client.disconnect()
-            logger.info("Redis disconnected")
-        except Exception:
-            pass
+    # Close Redis
+    try:
+        await redis_client.disconnect()
+        logger.info("Redis disconnected")
+    except Exception:
+        pass
 
     # Close database
     try:
@@ -129,7 +127,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 # Root endpoint
 @app.get("/", tags=["Root"])
 async def root():
-    """Root endpoint with API information."""
+    """Root endpoint with API information and public endpoints."""
     service_loader = get_service_loader()
     template_info = service_loader.get_template_info()
     
@@ -137,19 +135,27 @@ async def root():
         "name": settings.APP_NAME,
         "version": settings.APP_VERSION,
         "description": settings.APP_DESCRIPTION,
+        "architecture": "public-first",
         "template": {
             "type": template_info["type"],
             "name": template_info["name"],
             "description": template_info["description"],
         },
+        "public_endpoints": {
+            "health": "/health",
+            "templates": f"{settings.API_V1_PREFIX}/templates/",
+            "chat_session": f"{settings.API_V1_PREFIX}/chat/session",
+            "chat_message": f"{settings.API_V1_PREFIX}/chat/message",
+            "template_request": f"{settings.API_V1_PREFIX}/chat/template-request",
+        },
         "docs": "/docs" if settings.ENABLE_DOCS else None,
-        "health": "/health",
         "features": template_info["feature_flags"],
     }
     
     if settings.DEBUG:
         response["debug_info"] = {
             "required_services": template_info["required_services"],
+            "public_services": service_loader.PUBLIC_SERVICES,
             "requires_redis": template_info["requires_redis"],
             "requires_celery": template_info["requires_celery"],
             "requires_billing": template_info["requires_billing"],
