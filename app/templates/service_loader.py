@@ -22,10 +22,37 @@ logger = get_logger(__name__)
 
 
 class ServiceLoader:
-    """Dynamic service loader for template-specific services."""
-    
+    """
+    Dynamic service loader - loads ALL routers for multi-use-case backend
+    (Lovable/Replit style). Project template_type determines feature access per route.
+    """
+
     # Public services — always loaded, no auth required
     PUBLIC_SERVICES = ["health", "templates", "chat"]
+
+    # All services to load (single backend for all use cases)
+    ALL_SERVICES = [
+        "health",
+        "templates",
+        "chat",
+        "auth",
+        "oauth",
+        "users",
+        "projects",
+        "billing",
+        "webhooks",
+        "notifications",
+        "analytics",
+        "blog",
+        "ai",
+        "saas",
+        "portfolio",
+        "ecommerce",
+        "crm",
+        "erp",
+        "leads",
+        "candidates",
+    ]
 
     # Service module mappings
     SERVICE_MODULES = {
@@ -108,35 +135,13 @@ class ServiceLoader:
             return None
     
     def load_required_routers(self) -> Dict[str, APIRouter]:
-        """Load all routers required for the current template."""
+        """Load ALL routers for multi-use-case backend (Lovable/Replit style)."""
         routers = {}
-        
-        # Always load public services first (no auth required)
-        for service in self.PUBLIC_SERVICES:
-            router = self.load_router(service)
-            if router:
-                routers[service] = router
-        
-        # Load auth services (still available, just not required for public access)
-        auth_services = ["auth", "oauth"]
-        for service in auth_services:
-            router = self.load_router(service)
-            if router:
-                routers[service] = router
-        
-        # Load template-specific services
-        for service_name in self._template_config.required_services:
+        for service_name in self.ALL_SERVICES:
             if service_name not in routers:
                 router = self.load_router(service_name)
                 if router:
                     routers[service_name] = router
-        
-        # Load optional services based on feature flags
-        if self._template_config.requires_billing:
-            webhook_router = self.load_router("webhooks")
-            if webhook_router:
-                routers["webhooks"] = webhook_router
-        
         return routers
     
     def is_service_enabled(self, service_name: str) -> bool:
@@ -172,12 +177,12 @@ class ServiceLoader:
         return self._template_config.requires_rabbitmq
     
     def get_template_info(self) -> Dict[str, Any]:
-        """Get information about the current template."""
+        """Get information about the backend (multi-use-case mode)."""
         return {
-            "type": self._template_type.value,
-            "name": self._template_config.name,
-            "description": self._template_config.description,
-            "required_services": self._template_config.required_services,
+            "type": "multi",
+            "name": "Multi-Use-Case Backend (Lovable/Replit style)",
+            "description": "Single backend serving all templates; project template_type gates feature access",
+            "loaded_services": list(self._loaded_routers.keys()),
             "feature_flags": self._template_config.feature_flags,
             "requires_redis": self._template_config.requires_redis,
             "requires_celery": self._template_config.requires_celery,

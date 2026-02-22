@@ -4,12 +4,14 @@ Custom Middleware
 Request/response middleware for logging, timing, and monitoring.
 """
 
+import json
 import time
-from typing import Callable
+from typing import Callable, Optional
 from uuid import uuid4
 
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.types import ASGIApp
 
 from app.core.settings import settings
 from app.core.logger import get_logger, set_correlation_id
@@ -18,9 +20,54 @@ from app.core.redis import redis_client
 
 logger = get_logger(__name__)
 
+# Fields to mask in request/response logs (case-insensitive)
+SENSITIVE_KEYS = {
+    "password",
+    "token",
+    "secret",
+    "authorization",
+    "api_key",
+    "apikey",
+    "access_token",
+    "refresh_token",
+    "stripe_key",
+    "credit_card",
+}
 
-class RequestLoggingMiddleware(BaseHTTPMiddleware):
-    """Middleware for logging HTTP requests and responses."""
+# Max body size to log (chars); larger bodies are truncated
+MAX_BODY_LOG_SIZE = 4096
+
+
+def _mask_sensitive(obj: dict) -> dict:
+    """Recursively mask sensitive keys in a dict."""
+    if not isinstance(obj, dict):
+        return obj
+    out = {}
+    for k, v in obj.items():
+        key_lower = k.lower()
+        if any(s in key_lower for s in SENSITIVE_KEYS):
+            out[k] = "***MASKED***"
+        elif isinstance(v, dict):
+            out[k] = _mask_sensitive(v)
+        elif isinstance(v, list) and v and isinstance(v[0], dict):
+            out[k] = [_mask_sensitive(i) for i in v]
+        else:
+            out[k] = v
+    return out
+
+
+def _truncate(s: str, max_len: int = MAX_BODY_LOG_SIZE) -> str:
+    if len(s) <= max_len:
+        return s
+    return s[:max_len] + f"... [truncated, total {len(s)} chars]"
+
+
+class RequestResponseLoggingMiddleware(BaseHTTPMiddleware):
+    """Middleware for logging HTTP requests and responses including bodies."""
+
+    def __init__(self, app: ASGIApp, max_body_size: int = MAX_BODY_LOG_SIZE):
+        super().__init__(app)
+        self.max_body_size = max_body_size
 
     async def dispatch(
         self,
@@ -37,24 +84,57 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         # Start timer
         start_time = time.perf_counter()
 
-        # Log request
+        # Read and log request body (for JSON); if consumed, replay for downstream
+        request_body: Optional[str] = None
+        body_read = False
+        body_bytes = b""
+        content_type = request.headers.get("content-type", "")
+        if "application/json" in content_type and request.method in (
+            "POST",
+            "PUT",
+            "PATCH",
+        ):
+            try:
+                body_bytes = await request.body()
+                body_read = True
+                if body_bytes:
+                    try:
+                        parsed = json.loads(body_bytes.decode("utf-8"))
+                        masked = _mask_sensitive(parsed)
+                        request_body = _truncate(
+                            json.dumps(masked, default=str), self.max_body_size
+                        )
+                    except (json.JSONDecodeError, UnicodeDecodeError):
+                        request_body = _truncate(
+                            body_bytes.decode("utf-8", errors="replace"),
+                            self.max_body_size,
+                        )
+            except Exception:
+                pass
+
+        if body_read:
+            async def receive_replay():
+                return {"type": "http.request", "body": body_bytes}
+            request = Request(request.scope, receive_replay)
+
+        log_request = {
+            "method": request.method,
+            "path": request.url.path,
+            "query": str(request.query_params),
+            "client_ip": request.client.host if request.client else None,
+        }
+        if request_body is not None:
+            log_request["body"] = request_body
+
         logger.info(
-            f"Request started: {request.method} {request.url.path}",
-            extra={
-                "extra_fields": {
-                    "method": request.method,
-                    "path": request.url.path,
-                    "query": str(request.query_params),
-                    "client_ip": request.client.host if request.client else None,
-                }
-            },
+            f"Request: {request.method} {request.url.path}",
+            extra={"extra_fields": log_request},
         )
 
         # Process request
         try:
             response = await call_next(request)
         except Exception as e:
-            # Log exception
             duration = time.perf_counter() - start_time
             logger.error(
                 f"Request failed: {request.method} {request.url.path}",
@@ -65,32 +145,34 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
                         "path": request.url.path,
                         "duration_ms": round(duration * 1000, 2),
                         "error": str(e),
+                        "request_body": request_body,
                     }
                 },
             )
             raise
 
-        # Calculate duration
         duration = time.perf_counter() - start_time
 
         # Log response
+        log_response = {
+            "method": request.method,
+            "path": request.url.path,
+            "status_code": response.status_code,
+            "duration_ms": round(duration * 1000, 2),
+        }
         logger.info(
-            f"Request completed: {request.method} {request.url.path}",
-            extra={
-                "extra_fields": {
-                    "method": request.method,
-                    "path": request.url.path,
-                    "status_code": response.status_code,
-                    "duration_ms": round(duration * 1000, 2),
-                }
-            },
+            f"Response: {request.method} {request.url.path} -> {response.status_code}",
+            extra={"extra_fields": log_response},
         )
 
-        # Add headers
         response.headers["X-Correlation-ID"] = correlation_id
         response.headers["X-Response-Time"] = f"{duration * 1000:.2f}ms"
 
         return response
+
+
+class RequestLoggingMiddleware(RequestResponseLoggingMiddleware):
+    """Alias for backward compatibility."""
 
 
 class RateLimitMiddleware(BaseHTTPMiddleware):

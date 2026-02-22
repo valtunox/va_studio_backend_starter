@@ -22,6 +22,10 @@ class ProjectCreate(ProjectBase):
 
     slug: Optional[str] = Field(None, max_length=255)
     is_public: bool = False
+    template_type: Optional[str] = Field(
+        "saas",
+        description="Template type: saas, blog, ecommerce, crm, erp, portfolio, etc.",
+    )
     settings: Optional[dict] = None
 
 
@@ -31,6 +35,7 @@ class ProjectUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=1, max_length=255)
     description: Optional[str] = Field(None, max_length=2000)
     slug: Optional[str] = Field(None, max_length=255)
+    template_type: Optional[str] = None
     status: Optional[str] = None
     is_public: Optional[bool] = None
     settings: Optional[dict] = None
@@ -41,6 +46,7 @@ class ProjectResponse(ProjectBase):
 
     id: str
     slug: str
+    template_type: str = "saas"
     status: str
     is_public: bool
     owner_id: str
@@ -57,6 +63,7 @@ class ProjectListResponse(BaseModel):
     id: str
     name: str
     slug: str
+    template_type: str = "saas"
     description: Optional[str]
     status: str
     is_public: bool

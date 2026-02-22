@@ -9,13 +9,15 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
 
-# Import your models
+# Import all models so Alembic can detect them
 from app.orm.base import Base
 from app.orm.user import User
 from app.orm.project import Project
-from app.orm.billing import Subscription, Payment, Invoice
-from app.orm.blog import Post, Category, Tag
+from app.orm.billing import Subscription, Payment, Invoice, SubscriptionPlan
+from app.orm.blog import Post, Category, Tag, post_tags
 from app.orm.notification import Notification
+from app.orm.ecommerce import Product, Order, OrderItem
+from app.orm.crm import Lead, Contact, Pipeline, Deal
 from app.core.settings import settings
 
 # Alembic Config object

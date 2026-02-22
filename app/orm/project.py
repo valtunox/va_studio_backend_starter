@@ -25,6 +25,20 @@ class ProjectStatus(str, Enum):
     DRAFT = "draft"
 
 
+class ProjectTemplateType(str, Enum):
+    """Project/template type for multi-use-case backend (Lovable/Replit style)."""
+    SAAS = "saas"
+    PORTFOLIO = "portfolio"
+    ECOMMERCE = "ecommerce"
+    BLOG = "blog"
+    CRM = "crm"
+    ERP = "erp"
+    SOCIAL = "social"
+    DASHBOARD = "dashboard"
+    LEADS = "leads"
+    CANDIDATES = "candidates"
+
+
 class Project(Base, TimestampMixin, SoftDeleteMixin):
     """Project model."""
 
@@ -51,6 +65,14 @@ class Project(Base, TimestampMixin, SoftDeleteMixin):
     description: Mapped[Optional[str]] = mapped_column(
         Text,
         nullable=True,
+    )
+
+    # Template type (determines which domain features are available)
+    template_type: Mapped[str] = mapped_column(
+        String(50),
+        default=ProjectTemplateType.SAAS.value,
+        nullable=False,
+        index=True,
     )
 
     # Status

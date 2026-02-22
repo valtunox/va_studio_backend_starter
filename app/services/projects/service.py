@@ -11,7 +11,7 @@ from uuid import uuid4
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.orm.project import Project, ProjectStatus
+from app.orm.project import Project, ProjectStatus, ProjectTemplateType
 from app.orm.user import User
 from app.schemas.project import ProjectCreate, ProjectUpdate
 
@@ -105,11 +105,22 @@ class ProjectService:
     async def create(self, owner: User, project_data: ProjectCreate) -> Project:
         """Create a new project."""
         slug = project_data.slug or self._generate_slug(project_data.name)
+        template_type = (
+            project_data.template_type
+            if project_data.template_type
+            else ProjectTemplateType.SAAS.value
+        )
+        # Validate template_type
+        try:
+            ProjectTemplateType(template_type)
+        except ValueError:
+            template_type = ProjectTemplateType.SAAS.value
 
         project = Project(
             name=project_data.name,
             slug=slug,
             description=project_data.description,
+            template_type=template_type,
             is_public=project_data.is_public,
             settings=project_data.settings,
             owner_id=owner.id,

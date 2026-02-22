@@ -92,9 +92,28 @@ async def get_db_context() -> AsyncGenerator[AsyncSession, None]:
 
 
 async def init_db() -> None:
-    """Initialize database tables."""
+    """Initialize database tables from ORM metadata."""
+    from app.orm.base import Base as ORMBase
+    from app.orm import (  # noqa: F401 - register models with metadata
+        User,
+        Project,
+        Subscription,
+        Payment,
+        Invoice,
+        Post,
+        Category,
+        Tag,
+        Notification,
+        Product,
+        Order,
+        OrderItem,
+        Lead,
+        Contact,
+        Pipeline,
+        Deal,
+    )
     async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+        await conn.run_sync(ORMBase.metadata.create_all)
 
 
 async def close_db() -> None:
