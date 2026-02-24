@@ -1,37 +1,85 @@
-# VA Studio Backend
+# VA Studio Backend Starter
 
-A production-ready FastAPI backend template for building SaaS applications. Suitable for ecommerce, portfolio, business consulting, and more.
+Production-ready FastAPI backend template for building SaaS applications. Supports 10+ project types: e-commerce, portfolio, CRM, ERP, blog, and more.
+
+This repo is embedded by **va_studio_ai_builder_backend** (Go, port 8743) to power user-created projects in VA Studio.
+
+## Role in VA Studio Architecture
+
+```
+  va_studio_ai_builder_frontend (Next.js :3000)
+            |
+            v
+  va_studio_ai_builder_backend (Go/Gin :8743)
+    |-- Orchestrates project lifecycle
+    |-- Scaffolds from templates
+    |-- Runs AI code modifications
+    |-- Proxies to starter services
+            |                          |
+            v                          v
+  va_studio_backend_starter        va_studio_frontend_starter
+  (FastAPI :5112) <-- THIS REPO    (Vite+React :3008)
+            |
+            v
+  PostgreSQL  /  Redis  /  Celery
+```
+
+### How It Fits
+
+1. User creates a project in VA Studio (e.g., "e-commerce store")
+2. The AI builder backend scaffolds a project using this starter as the base
+3. AI modifies code based on user prompts (add features, change logic)
+4. This starter runs as the project's backend API, serving the frontend starter
+5. User deploys via Docker when ready
+
+### Integration Points
+
+| System | Connection |
+|--------|------------|
+| **va_studio_ai_builder_backend** | Orchestrator -- spins up, manages, and modifies this service |
+| **va_studio_frontend_starter** | Paired frontend -- consumes this API at `http://localhost:5112` |
+| **va_infinityai_ai** | Shares PostgreSQL database (`vacloudopsdb1`) and JWT `SECRET_KEY` for cross-platform auth |
+| **PostgreSQL** | Shared database for users, or standalone per-project DB |
+| **Redis** | Shared cache/session store |
 
 ## Features
 
 - **Authentication & Authorization**
-  - JWT-based authentication
+  - JWT-based authentication (HS256, shared secret for cross-platform tokens)
   - OAuth2 (Google, GitHub)
-  - Role-based access control
+  - Role-based access control (USER, ADMIN, MODERATOR)
   - Password reset & email verification
 
+- **Template Types** (set via `TEMPLATE_TYPE` env var)
+  - SaaS -- Dashboard, analytics, team management
+  - Portfolio -- Projects, skills, contact
+  - E-commerce -- Products, cart, orders, Stripe checkout
+  - Blog -- Posts, tags, categories, CMS
+  - CRM -- Contacts, companies, deals, pipeline
+  - ERP -- Inventory, procurement, orders, finance
+  - Leads -- Lead capture, scoring, assignment
+  - Candidates -- Recruitment, applications, interviews
+  - Social -- Profiles, feeds, messaging
+  - Dashboard -- Analytics, metrics, charts
+
 - **Core Modules**
-  - User management
+  - User management with profiles and avatars
   - Project/workspace management
   - Billing & subscriptions (Stripe)
-  - Notifications (in-app & email)
-  - Blog/CMS
-  - Analytics dashboard
+  - Notifications (in-app & email with outbox pattern)
+  - Blog/CMS with slug-based URLs
+  - Analytics & event tracking
+  - AI agent framework (LangChain, OpenAI, Anthropic stubs)
 
 - **Infrastructure**
-  - Docker & Docker Compose
-  - PostgreSQL with async support
+  - Docker & Docker Compose (dev + prod configs)
+  - PostgreSQL with async support (asyncpg, SQLAlchemy 2.0)
   - Redis for caching & sessions
-  - Celery for background tasks
+  - Celery for background tasks + Flower monitoring
   - Alembic for database migrations
+  - Kafka + RabbitMQ messaging (optional)
   - CI/CD pipeline (GitHub Actions)
-
-- **Developer Experience**
-  - OpenAPI documentation
-  - Comprehensive test suite
-  - Structured logging
-  - Health checks
-  - Rate limiting
+  - Nginx reverse proxy configs
 
 ## Quick Start
 
@@ -44,113 +92,37 @@ A production-ready FastAPI backend template for building SaaS applications. Suit
 
 ### Installation
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/yourusername/va_studio_backend_starter.git
-   cd va_studio_backend_starter
-   ```
+```bash
+# Clone
+git clone https://github.com/yourusername/va_studio_backend_starter.git
+cd va_studio_backend_starter
 
-2. **Create virtual environment**
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
+# Virtual environment
+python -m venv venv
+source venv/bin/activate
 
-3. **Install dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
+# Dependencies
+pip install -r requirements.txt
 
-4. **Configure environment**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your settings
-   ```
+# Environment
+cp .env.example .env
+# Edit .env with your settings
 
-5. **Start services (with Docker)**
-   ```bash
-   docker-compose up -d db redis
-   ```
+# Database
+docker-compose up -d db redis
+alembic upgrade head
 
-6. **Run migrations**
-   ```bash
-   alembic upgrade head
-   ```
-
-7. **Seed sample data (optional)**
-   ```bash
-   python scripts/seed_data.py
-   ```
-
-8. **Start the server**
-   ```bash
-   make dev
-   # Or: uvicorn app.app:app --reload
-   ```
-
-9. **Open API documentation**
-   - Swagger UI: http://localhost:8000/docs
-   - ReDoc: http://localhost:8000/redoc
+# Run
+make dev
+# Or: uvicorn app.app:app --reload --port 5112
+```
 
 ### Using Docker
 
 ```bash
-# Build and start all services
 docker-compose up -d
-
-# View logs
-docker-compose logs -f
-
-# Stop services
-docker-compose down
-```
-
-## Project Structure
-
-```
-va_studio_backend_starter/
-├── app/
-│   ├── __init__.py
-│   ├── app.py                  # FastAPI application entry point
-│   ├── auth/                   # Authentication module
-│   │   ├── routes.py           # Auth endpoints
-│   │   ├── oauth.py            # OAuth providers
-│   │   └── dependencies.py     # Auth dependencies
-│   ├── core/                   # Core infrastructure
-│   │   ├── config.py           # Settings
-│   │   ├── database.py         # Database connection
-│   │   ├── redis.py            # Redis client
-│   │   ├── security.py         # JWT & password
-│   │   ├── logger.py           # Logging
-│   │   ├── middleware.py       # Custom middleware
-│   │   ├── celery_app.py       # Celery configuration
-│   │   └── alembic/            # Database migrations
-│   │       ├── env.py
-│   │       └── versions/
-│   ├── orm/                    # SQLAlchemy ORM models
-│   ├── schemas/                # Pydantic schemas
-│   ├── services/               # Business logic
-│   │   ├── users/
-│   │   ├── projects/
-│   │   ├── billing/
-│   │   ├── notifications/
-│   │   ├── email/
-│   │   ├── analytics/
-│   │   ├── blog/
-│   │   ├── health/
-│   │   └── ai/                 # AI service stubs
-│   ├── tests/                  # Test suite
-│   └── utils/                  # Utility functions
-├── scripts/                    # Utility scripts
-├── nginx/                      # Nginx configuration
-├── .github/workflows/          # CI/CD pipeline
-├── docker-compose.yml          # Docker development
-├── docker-compose.prod.yml     # Docker production
-├── Dockerfile
-├── Makefile
-├── alembic.ini                 # Alembic configuration
-├── requirements.txt
-└── README.md
+# API: http://localhost:5112
+# Swagger: http://localhost:5112/docs
 ```
 
 ## API Endpoints
@@ -191,156 +163,119 @@ va_studio_backend_starter/
 | POST | `/api/v1/billing/checkout` | Create checkout session |
 | POST | `/api/v1/billing/portal` | Open billing portal |
 
-### Blog
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/v1/blog/posts` | List posts |
-| POST | `/api/v1/blog/posts` | Create post |
-| GET | `/api/v1/blog/posts/{id}` | Get post |
-| PATCH | `/api/v1/blog/posts/{id}` | Update post |
+### Template-Specific Endpoints
+
+Routes are loaded dynamically based on `TEMPLATE_TYPE`:
+
+- **E-commerce**: `/api/v1/ecommerce/products`, `/api/v1/ecommerce/orders`, `/api/v1/ecommerce/cart`
+- **CRM**: `/api/v1/crm/contacts`, `/api/v1/crm/companies`, `/api/v1/crm/deals`
+- **ERP**: `/api/v1/erp/inventory`, `/api/v1/erp/procurement`, `/api/v1/erp/orders`
+- **Blog**: `/api/v1/blog/posts`, `/api/v1/blog/categories`
+- **Leads**: `/api/v1/leads/`
+- **Candidates**: `/api/v1/candidates/`
+
+## Project Structure
+
+```
+va_studio_backend_starter/
+  app/
+    app.py                     # FastAPI entry point (public-first architecture)
+    auth/                      # JWT auth, OAuth, RBAC
+    core/                      # Settings, DB, Redis, Celery, middleware, logger
+      alembic/                 # Database migrations
+    orm/                       # SQLAlchemy models (user, project, billing, blog, crm, ecommerce)
+    schemas/                   # Pydantic request/response schemas
+    services/                  # Business logic by domain
+      ai/                     # LangChain agent framework
+      analytics/              # Event tracking & dashboards
+      billing/                # Stripe integration
+      blog/                   # CMS
+      chat/                   # Real-time messaging
+      crm/                    # Customer relationship management
+      ecommerce/              # Products, orders, cart
+      email/                  # Async SMTP with templates
+      erp/                    # Enterprise resource planning
+      health/                 # Health checks
+      leads/                  # Lead management
+      notifications/          # In-app + email notifications
+      projects/               # Project CRUD
+      users/                  # User management
+    tests/
+    utils/
+  scripts/                     # Seed data, utilities
+  nginx/                       # Reverse proxy config
+  .github/workflows/           # CI/CD
+  Dockerfile                   # Multi-stage build
+  docker-compose.yml           # Development
+  docker-compose.prod.yml      # Production
+  Makefile                     # Dev commands
+  alembic.ini
+  requirements.txt
+```
 
 ## Configuration
 
-Key environment variables:
-
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `DATABASE_URL` | PostgreSQL connection string | `postgresql+asyncpg://...` |
-| `REDIS_URL` | Redis connection string | `redis://localhost:6379/0` |
-| `SECRET_KEY` | JWT secret key | (required) |
-| `CORS_ORIGINS` | Allowed origins | `http://localhost:3000` |
+| `TEMPLATE_TYPE` | Active template (saas, portfolio, ecommerce, blog, crm, erp) | `saas` |
+| `DATABASE_URL` | PostgreSQL connection | `postgresql+asyncpg://postgres:postgres@localhost:5432/vacloudopsdb1` |
+| `REDIS_URL` | Redis connection | `redis://localhost:6379/0` |
+| `SECRET_KEY` | JWT signing key (shared with Go backend) | (required) |
+| `CORS_ORIGINS` | Allowed origins | `http://localhost:3000,http://localhost:3008` |
+| `HOST` / `PORT` | Server bind | `0.0.0.0` / `5112` |
+| `DEBUG` | Debug mode | `true` |
 | `STRIPE_SECRET_KEY` | Stripe API key | (optional) |
-| `SMTP_HOST` | SMTP server | `smtp.gmail.com` |
-
-See `.env.example` for all options.
 
 ## Development
 
-### Running Tests
-
 ```bash
-# Run all tests
-make test
-
-# Run with coverage
-make test-cov
-
-# Run unit tests only
-make test-unit
-
-# Run integration tests
-make test-int
-```
-
-### Code Quality
-
-```bash
-# Format code
-make format
-
-# Run linting
-make lint
-
-# Type checking
-make type-check
+make dev              # Start dev server
+make test             # Run tests
+make test-cov         # Tests with coverage
+make lint             # Linting
+make format           # Code formatting
+make celery-worker    # Start Celery worker
+make celery-beat      # Start scheduler
+make celery-flower    # Monitoring UI
 ```
 
 ### Database
 
 ```bash
-# Create migration
-alembic revision --autogenerate -m "description"
-
-# Apply migrations
-alembic upgrade head
-
-# Rollback
-alembic downgrade -1
-
-# Seed data
-python scripts/seed_data.py
-```
-
-### Celery
-
-```bash
-# Start worker
-make celery-worker
-
-# Start beat (scheduler)
-make celery-beat
-
-# Start Flower (monitoring)
-make celery-flower
+alembic revision --autogenerate -m "description"   # Create migration
+alembic upgrade head                                # Apply migrations
+alembic downgrade -1                                # Rollback
+python scripts/seed_data.py                         # Seed data
 ```
 
 ## Deployment
 
-### Production with Docker
+```bash
+# Production Docker
+docker-compose -f docker-compose.prod.yml up -d
+```
 
-1. Build the image:
-   ```bash
-   docker build -t va-studio-backend:latest .
-   ```
-
-2. Configure production environment:
-   ```bash
-   cp .env.example .env
-   # Edit .env with production values
-   ```
-
-3. Start services:
-   ```bash
-   docker-compose -f docker-compose.prod.yml up -d
-   ```
-
-### Environment Configuration
-
-For production, ensure:
-- `DEBUG=false`
-- `ENVIRONMENT=production`
-- Strong `SECRET_KEY`
+Production checklist:
+- `DEBUG=false`, `ENVIRONMENT=production`
+- Strong `SECRET_KEY` (must match Go backend for cross-platform tokens)
 - Proper database credentials
 - SSL/TLS enabled
 - Rate limiting configured
 
 ## AI Integration
 
-The template includes stubs for AI agent integration. To enable AI features:
+AI agent stubs are included for LLM-powered features:
 
-1. Install AI dependencies:
-   ```bash
-   pip install langchain langchain-openai openai
-   ```
+```bash
+pip install langchain langchain-openai openai
+```
 
-2. Configure API keys:
-   ```bash
-   OPENAI_API_KEY=sk-...
-   # or
-   ANTHROPIC_API_KEY=sk-ant-...
-   ```
-
-3. Implement agents in `app/services/ai/agents/`
-
-See `app/services/ai/agents/README.md` for detailed instructions.
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+Set `OPENAI_API_KEY` or `ANTHROPIC_API_KEY`, then implement agents in `app/services/ai/agents/`.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Support
-
-- Documentation: [/docs](http://localhost:8000/docs)
-- Issues: [GitHub Issues](https://github.com/yourusername/va_studio_backend_starter/issues)
+MIT License -- see [LICENSE](LICENSE).
 
 ---
 
-Built with FastAPI, SQLAlchemy, and love.
+Built with FastAPI, SQLAlchemy, and Celery. Part of the VA Studio platform by Valtunox.
