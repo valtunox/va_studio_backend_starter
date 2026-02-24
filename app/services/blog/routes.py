@@ -7,7 +7,7 @@ Endpoints for blog posts, categories, and tags.
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.database import get_db
+from app.core.db import get_db
 from app.orm.user import User
 from app.schemas.blog import (
     PostCreate,

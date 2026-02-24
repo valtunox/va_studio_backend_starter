@@ -24,7 +24,7 @@ logger = get_logger(__name__)
 class ServiceLoader:
     """
     Dynamic service loader - loads ALL routers for multi-use-case backend
-    (Lovable/Replit style). Project template_type determines feature access per route.
+    (valtunox/valtunox studio style). Project template_type determines feature access per route.
     """
 
     # Public services — always loaded, no auth required
@@ -135,7 +135,7 @@ class ServiceLoader:
             return None
     
     def load_required_routers(self) -> Dict[str, APIRouter]:
-        """Load ALL routers for multi-use-case backend (Lovable/Replit style)."""
+        """Load ALL routers for multi-use-case backend (valtunox/valtunox studio style)."""
         routers = {}
         for service_name in self.ALL_SERVICES:
             if service_name not in routers:
@@ -180,7 +180,7 @@ class ServiceLoader:
         """Get information about the backend (multi-use-case mode)."""
         return {
             "type": "multi",
-            "name": "Multi-Use-Case Backend (Lovable/Replit style)",
+            "name": "Multi-Use-Case Backend (valtunox/valtunox studio style)",
             "description": "Single backend serving all templates; project template_type gates feature access",
             "loaded_services": list(self._loaded_routers.keys()),
             "feature_flags": self._template_config.feature_flags,

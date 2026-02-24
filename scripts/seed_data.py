@@ -8,7 +8,7 @@ from pathlib import Path
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from app.core.database import async_session_maker
+from app.core.db import get_async_session_factory
 from app.core.security import get_password_hash
 from app.core.logger import logger
 from app.orm.user import User, UserRole
@@ -183,7 +183,8 @@ async def main():
     """Run all seed functions."""
     logger.info("Starting database seeding...")
 
-    async with async_session_maker() as db:
+    session_factory = get_async_session_factory()
+    async with session_factory() as db:
         try:
             users = await seed_users(db)
             await seed_projects(db, users)

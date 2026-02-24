@@ -12,7 +12,7 @@ from fastapi import Depends, HTTPException, Path, status
 from app.orm.project import Project, ProjectTemplateType
 from app.orm.user import User
 from app.auth.dependencies import get_current_active_user
-from app.core.database import get_db
+from app.core.db import get_db
 from app.services.projects.service import ProjectService
 from sqlalchemy.ext.asyncio import AsyncSession
 

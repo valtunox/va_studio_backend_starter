@@ -26,7 +26,7 @@ class ProjectStatus(str, Enum):
 
 
 class ProjectTemplateType(str, Enum):
-    """Project/template type for multi-use-case backend (Lovable/Replit style)."""
+    """Project/template type for multi-use-case backend (valtunox/valtunox studio style)."""
     SAAS = "saas"
     PORTFOLIO = "portfolio"
     ECOMMERCE = "ecommerce"

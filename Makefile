@@ -117,12 +117,12 @@ db-seed:
 	$(PYTHON) scripts/seed_data.py
 
 db-reset:
-	$(DOCKER_COMPOSE) exec db psql -U postgres -c "DROP DATABASE IF EXISTS va_studio;"
-	$(DOCKER_COMPOSE) exec db psql -U postgres -c "CREATE DATABASE va_studio;"
+	$(DOCKER_COMPOSE) exec db psql -U postgres -c "DROP DATABASE IF EXISTS vacloudopsdb2;"
+	$(DOCKER_COMPOSE) exec db psql -U postgres -c "CREATE DATABASE vacloudopsdb2;"
 	alembic upgrade head
 
 db-shell:
-	$(DOCKER_COMPOSE) exec db psql -U postgres -d va_studio
+	$(DOCKER_COMPOSE) exec db psql -U postgres -d vacloudopsdb2
 
 # Celery
 celery-worker:

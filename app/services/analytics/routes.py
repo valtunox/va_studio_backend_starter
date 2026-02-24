@@ -7,7 +7,7 @@ Endpoints for analytics and metrics.
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.database import get_db
+from app.core.db import get_db
 from app.orm.user import User
 from app.auth.dependencies import get_current_active_user, require_admin
 from app.services.analytics.service import AnalyticsService

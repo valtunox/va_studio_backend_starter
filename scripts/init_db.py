@@ -8,7 +8,7 @@ from pathlib import Path
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from app.core.database import engine, Base
+from app.core.db import get_async_engine, Base
 from app.core.logger import logger
 
 # Import all models to register them
@@ -22,6 +22,7 @@ from app.orm.notification import Notification
 async def init_db():
     """Create all database tables."""
     logger.info("Creating database tables...")
+    engine = get_async_engine()
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
@@ -32,6 +33,7 @@ async def init_db():
 async def drop_db():
     """Drop all database tables."""
     logger.info("Dropping database tables...")
+    engine = get_async_engine()
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)

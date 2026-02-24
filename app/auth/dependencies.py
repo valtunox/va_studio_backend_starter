@@ -11,7 +11,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.database import get_db
+from app.core.db import get_db
 from app.core.security import verify_token, validate_api_key
 from app.core.settings import settings
 from app.orm.user import User, UserRole

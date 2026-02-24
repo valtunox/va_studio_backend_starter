@@ -8,7 +8,7 @@ from fastapi import APIRouter, Request, HTTPException, status, Depends
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.database import get_db
+from app.core.db import get_db
 from app.core.settings import settings
 from app.core.logger import get_logger
 from app.orm.billing import Subscription, SubscriptionStatus

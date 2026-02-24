@@ -7,7 +7,7 @@ Endpoints for project management.
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.database import get_db
+from app.core.db import get_db
 from app.orm.user import User
 from app.schemas.project import ProjectCreate, ProjectUpdate, ProjectResponse
 from app.schemas.common import PaginatedResponse, MessageResponse

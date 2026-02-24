@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sess
 from sqlalchemy.pool import NullPool
 
 from app.app import app
-from app.core.database import Base, get_db
+from app.core.db import Base, get_db
 from app.core.settings import settings
 from app.core.security import get_password_hash
 from app.orm.user import User, UserRole
@@ -18,7 +18,7 @@ from app.orm.user import User, UserRole
 
 # Test database URL
 TEST_DATABASE_URL = settings.DATABASE_URL.replace(
-    "/va_studio", "/va_studio_test"
+    "/vacloudopsdb2", "/vacloudopsdb2_test"
 )
 
 # Create test engine

@@ -72,7 +72,7 @@ class Settings(BaseSettings):
     CORS_ALLOW_HEADERS: List[str] = ["*"]
 
     # Database
-    DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/va_studio"
+    DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/vacloudopsdb2"
     DATABASE_POOL_SIZE: int = 20
     DATABASE_MAX_OVERFLOW: int = 30
     DATABASE_POOL_TIMEOUT: int = 30

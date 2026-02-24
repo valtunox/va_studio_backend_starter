@@ -1,4 +1,4 @@
-# Multi–Use-Case Backend (Lovable/Replit Style)
+# Multi–Use-Case Backend (valtunox/valtunox studio Style)
 
 **Implemented.** Single backend serves all templates; project `template_type` gates feature access.
 
@@ -52,7 +52,7 @@ So: **Yes, FastAPI can support all those use cases.** The gap is not FastAPI its
 - **Pros:** Smallest change, clear separation, only the code for the chosen template is loaded.  
 - **Cons:** To support “user picks ecommerce **or** blog” you either run multiple backends (one per template) or move to Option B.
 
-### Option B: One backend, all use cases (Lovable/Replit style)
+### Option B: One backend, all use cases (valtunox/valtunox studio style)
 
 - **Single deployment**, one API serves all frontend templates (ecommerce, blog, crm, etc.).
 - **Per-project (or per-tenant) type:**  
