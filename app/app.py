@@ -31,6 +31,7 @@ from app.core.middleware import (
     RateLimitMiddleware,
     SecurityHeadersMiddleware,
 )
+from app.orm.base import Base
 
 from app.templates.service_loader import get_service_loader, ServiceLoader
 from app.templates.registry import TemplateType
@@ -48,12 +49,13 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
     logger.info(f"Starting {settings.APP_NAME} v{settings.APP_VERSION}")
     logger.info(f"Environment: {settings.ENVIRONMENT.value}")
     logger.info(f"Template: {template_info['name']} ({template_info['type']})")
-    logger.info(f"Enabled services: {', '.join(template_info['required_services'])}")
+    logger.info(f"Enabled services: {', '.join(template_info.get('loaded_services', template_info.get('required_services', [])))}")
 
-    # Initialize database
+    # Initialize database (auto-creates tables + syncs schema)
     try:
         await init_db()
-        logger.info("Database initialized")
+        table_names = sorted(Base.metadata.tables.keys())
+        logger.info(f"Database initialized – {len(table_names)} tables registered: {table_names}")
     except Exception as e:
         logger.error(f"Database initialization failed: {e}")
 
@@ -198,6 +200,30 @@ async def health_check():
     return health
 
 
+# Database introspection endpoint (for vibe coding / AI builder feedback)
+@app.get("/db/tables", tags=["Database"])
+async def list_db_tables():
+    """List all ORM-registered tables and their columns."""
+    tables_info = {}
+    for table_name, table in sorted(Base.metadata.tables.items()):
+        tables_info[table_name] = {
+            "columns": [
+                {
+                    "name": col.name,
+                    "type": str(col.type),
+                    "nullable": col.nullable,
+                    "primary_key": col.primary_key,
+                }
+                for col in table.columns
+            ],
+            "column_count": len(table.columns),
+        }
+    return {
+        "table_count": len(tables_info),
+        "tables": tables_info,
+    }
+
+
 # Get service loader and load required routers
 service_loader = get_service_loader()
 routers = service_loader.load_required_routers()
@@ -226,6 +252,6 @@ if __name__ == "__main__":
         "app.app:app",
         host=settings.HOST,
         port=settings.PORT,
-        reload=settings.RELOAD,
+        reload=False,
         workers=1 if settings.RELOAD else settings.WORKERS,
     )

@@ -1,0 +1,96 @@
+Air Database Sync Report
+================================================================================
+Timestamp: 2026-02-05 17:19:06
+
+Schemas: public (default), philippines, canada
+
+Created tables: 84
+  - users
+  - leads
+  - jobs
+  - campaign
+  - sales_representatives
+  - ai_chat_sessions
+  - ai_chat_messages
+  - sales_follow_up
+  - email_provider_reports
+  - settings
+  - tenants
+  - ai_system_settings
+  - notifications
+  - notification_preferences
+  - notification_channels
+  - notification_templates
+  - notification_categories
+  - notification_outbox
+  - notification_events_log
+  - queue_messages
+  - philippines.addons
+  - philippines.candidateaccounts
+  - philippines.candidateaddresses
+  - philippines.candidatebankinfos
+  - philippines.candidatedeductions
+  - philippines.candidateskills
+  - philippines.candidates
+  - philippines.clientaddresses
+  - philippines.clients
+  - philippines.deductions
+  - philippines.governments
+  - philippines.invoicecandidates
+  - philippines.invoiceitems
+  - philippines.invoices
+  - philippines.pagibig
+  - philippines.payrolls
+  - philippines.philhealth
+  - philippines.punchcardaddons
+  - philippines.punchcarddeductions
+  - philippines.punchcardrates
+  - philippines.punchcardtimerecords
+  - philippines.punchcards
+  - philippines.receipts
+  - philippines.ssstable
+  - philippines.shiftaccountmanager
+  - philippines.shiftaddons
+  - philippines.shiftcalendars
+  - philippines.shiftcandidate
+  - philippines.shiftrates
+  - philippines.shiftschedules
+  - philippines.shiftskills
+  - philippines.shiftskillslocations
+  - philippines.shiftsupervisor
+  - philippines.shifts
+  - philippines.skills
+  - philippines.taxes
+  - canada.addons
+  - canada.candidateaddresses
+  - canada.candidatebankinfos
+  - canada.candidateemploymenttypes
+  - canada.candidatejobwanteds
+  - canada.candidateschedules
+  - canada.candidateworkareas
+  - canada.candidates
+  - canada.clientaddresses
+  - canada.clients
+  - canada.criteriaemploymenttypes
+  - canada.criteriajobwanteds
+  - canada.criteriaschedules
+  - canada.criteriaworkareas
+  - canada.invoiceitems
+  - canada.invoicepunchcards
+  - canada.invoices
+  - canada.payrolls
+  - canada.punchcardaddons
+  - canada.punchcardrecords
+  - canada.punchcards
+  - canada.shiftaddons
+  - canada.shiftcalendars
+  - canada.shiftcandidates
+  - canada.shiftrates
+  - canada.shiftschedules
+  - canada.shifts
+  - canada.taxoptions
+
+Updated tables: 0
+
+Skipped tables: 0
+

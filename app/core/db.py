@@ -1,14 +1,18 @@
 """
-Database Configuration for InfinityAI Platform
-===============================================
+Database Configuration for VA Studio Backend
+=============================================
 Supports:
   - asyncpg connection pool (raw async queries)
   - psycopg2 synchronous connections (legacy)
   - SQLAlchemy async engine + sessions (ORM)
+  - Auto-create tables from ORM models on startup
+  - Auto-sync schema (add missing columns) for vibe-coded model changes
 """
 
 import os
 import asyncio
+import importlib
+import pkgutil
 
 import psycopg2
 
@@ -23,7 +27,7 @@ except ImportError:
 
 try:
     from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
-    from sqlalchemy import create_engine
+    from sqlalchemy import create_engine, inspect, text
     from sqlalchemy.orm import sessionmaker
 except ImportError:
     create_async_engine = None
@@ -31,6 +35,8 @@ except ImportError:
     async_sessionmaker = None
     create_engine = None
     sessionmaker = None
+    inspect = None
+    text = None
     logger.warning("SQLAlchemy not installed. ORM operations will not work.")
 
 
@@ -55,7 +61,7 @@ def get_db_config():
         'database': os.environ.get('POSTGRES_DB', 'vacloudopsdb2'),
         'user': os.environ.get('POSTGRES_USER', 'postgres'),
         'password': os.environ.get('POSTGRES_PASSWORD', 'postgres'),
-        'host': os.environ.get('POSTGRES_HOST', '127.0.0.1'),
+        'host': os.environ.get('POSTGRES_HOST', '54.174.34.231'),
         'port': int(os.environ.get('POSTGRES_PORT', 5432)),
     }
 
@@ -271,12 +277,144 @@ async_session_maker = get_async_session_factory
 engine = None  # lazily set; use get_async_engine() directly
 
 
+# ---------------------------------------------------------------------------
+# Dynamic ORM discovery
+# ---------------------------------------------------------------------------
+
+def discover_orm_models():
+    """
+    Dynamically import every module in app.orm so all model classes
+    register themselves on Base.metadata before create_all runs.
+    This ensures vibe-coded models added by va_studio_ai_builder_backend
+    are picked up automatically without editing __init__.py.
+    """
+    import app.orm as orm_pkg
+
+    discovered = []
+    for importer, modname, ispkg in pkgutil.iter_modules(orm_pkg.__path__):
+        full_name = f"app.orm.{modname}"
+        try:
+            importlib.import_module(full_name)
+            discovered.append(modname)
+        except Exception as exc:
+            logger.warning(f"Could not import ORM module {full_name}: {exc}")
+
+    logger.info(f"ORM discovery complete – imported {len(discovered)} modules: {discovered}")
+    return discovered
+
+
+# ---------------------------------------------------------------------------
+# Schema sync – add missing columns to existing tables
+# ---------------------------------------------------------------------------
+
+def _sa_column_type_ddl(col) -> str:
+    """Compile a column type to its PostgreSQL DDL string."""
+    try:
+        from sqlalchemy.dialects import postgresql
+        return col.type.compile(dialect=postgresql.dialect())
+    except Exception:
+        return str(col.type)
+
+
+def sync_schema(sync_engine):
+    """
+    Compare ORM metadata against the live database and ADD any missing
+    columns.  This is a safe, additive-only migration so it never drops
+    columns or tables.
+    """
+    if inspect is None:
+        logger.warning("SQLAlchemy inspect not available – skipping schema sync")
+        return
+
+    insp = inspect(sync_engine)
+    existing_tables = set(insp.get_table_names())
+    changes = []
+
+    for table_name, table in Base.metadata.tables.items():
+        if table_name not in existing_tables:
+            continue
+
+        existing_cols = {c["name"] for c in insp.get_columns(table_name)}
+
+        for col in table.columns:
+            if col.name in existing_cols:
+                continue
+
+            col_type = _sa_column_type_ddl(col)
+            nullable = "NULL" if col.nullable else "NOT NULL"
+            default_clause = ""
+
+            if col.server_default is not None:
+                try:
+                    default_clause = f" DEFAULT {col.server_default.arg}"
+                except Exception:
+                    default_clause = ""
+            elif col.default is not None and isinstance(col.default.arg, (str, int, float, bool)):
+                default_clause = f" DEFAULT '{col.default.arg}'" if isinstance(col.default.arg, str) else f" DEFAULT {col.default.arg}"
+
+            if nullable == "NOT NULL" and not default_clause:
+                nullable = "NULL"
+
+            ddl = f'ALTER TABLE "{table_name}" ADD COLUMN "{col.name}" {col_type} {nullable}{default_clause}'
+            changes.append(ddl)
+
+    if not changes:
+        logger.info("Schema sync: all tables are up to date")
+        return
+
+    logger.info(f"Schema sync: applying {len(changes)} column additions")
+    with sync_engine.connect() as conn:
+        for ddl in changes:
+            try:
+                conn.execute(text(ddl))
+                logger.info(f"  OK  {ddl}")
+            except Exception as exc:
+                logger.warning(f"  SKIP {ddl} — {exc}")
+        conn.commit()
+
+
+# ---------------------------------------------------------------------------
+# Startup / shutdown
+# ---------------------------------------------------------------------------
+
 async def init_db():
-    """Initialise connection pool + SQLAlchemy engine on app startup."""
+    """
+    Full database initialisation on app startup:
+      1. Create asyncpg connection pool
+      2. Create SQLAlchemy engines
+      3. Discover all ORM models dynamically
+      4. Create any missing tables  (CREATE TABLE IF NOT EXISTS)
+      5. Add any missing columns     (ALTER TABLE ADD COLUMN)
+    """
     global engine
+
+    # 1. Connection pool
     await create_async_connection_pool()
+
+    # 2. Engine
     engine = get_async_engine()
-    logger.info("Database initialised (pool + engine)")
+
+    # 3. Discover ORM models so Base.metadata is fully populated
+    discover_orm_models()
+
+    # 4 + 5. Create tables + sync schema (uses sync engine for DDL)
+    sync_eng = get_sync_engine()
+    if sync_eng is not None:
+        try:
+            Base.metadata.create_all(bind=sync_eng, checkfirst=True)
+            logger.info("Auto-create tables: done (checkfirst=True)")
+        except Exception as exc:
+            logger.error(f"Auto-create tables failed: {exc}")
+
+        try:
+            sync_schema(sync_eng)
+        except Exception as exc:
+            logger.error(f"Schema sync failed: {exc}")
+    else:
+        logger.warning("Sync engine unavailable – skipping table creation and schema sync")
+
+    table_count = len(Base.metadata.tables)
+    logger.info(f"Database initialised (pool + engine, {table_count} ORM tables registered)")
 
 
 async def close_db():
