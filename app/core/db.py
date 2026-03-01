@@ -61,7 +61,7 @@ def get_db_config():
         'database': os.environ.get('POSTGRES_DB', 'vacloudopsdb2'),
         'user': os.environ.get('POSTGRES_USER', 'postgres'),
         'password': os.environ.get('POSTGRES_PASSWORD', 'postgres'),
-        'host': os.environ.get('POSTGRES_HOST', '54.174.34.231'),
+        'host': os.environ.get('POSTGRES_HOST', 'localhost'),
         'port': int(os.environ.get('POSTGRES_PORT', 5432)),
     }
 
