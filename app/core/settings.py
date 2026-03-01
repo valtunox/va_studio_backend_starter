@@ -72,21 +72,21 @@ class Settings(BaseSettings):
     CORS_ALLOW_HEADERS: List[str] = ["*"]
 
     # Database
-    DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@54.174.34.231:5432/vacloudopsdb2"
+    DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/vacloudopsdb2"
     DATABASE_POOL_SIZE: int = 20
     DATABASE_MAX_OVERFLOW: int = 30
     DATABASE_POOL_TIMEOUT: int = 30
     DATABASE_ECHO: bool = False
 
     # Redis
-    REDIS_URL: str = "redis://54.174.34.231:6379/0"
+    REDIS_URL: str = "redis://localhost:6379/0"
     REDIS_PASSWORD: Optional[str] = None
     REDIS_PREFIX: str = "va_studio:"
     REDIS_TTL: int = 3600
 
     # Celery
-    CELERY_BROKER_URL: str = "redis://54.174.34.231:6379/1"
-    CELERY_RESULT_BACKEND: str = "redis://54.174.34.231:6379/2"
+    CELERY_BROKER_URL: str = "redis://localhost:6379/1"
+    CELERY_RESULT_BACKEND: str = "redis://localhost:6379/2"
     CELERY_TASK_ALWAYS_EAGER: bool = False
 
     # Email
