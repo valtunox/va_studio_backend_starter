@@ -12,7 +12,7 @@ This repo is embedded by **va_studio_ai_builder_backend** (Go, port 8743) to pow
 
 Open source collection of beautifully crafted UI templates for rapid prototyping and production apps. Built with React 18, Vite 6, Tailwind CSS, and shadcn/ui components.
 
-Quick Start • Templates • Features • Tech Stack • Contributing (see the [VA Studio Frontend Starter README](https://github.com/valtunox/va_studio_frontend_starter#readme))
+For Quick Start, Templates, Features, Tech Stack, and Contributing guides, see the [VA Studio Frontend Starter README](https://github.com/valtunox/va_studio_frontend_starter#readme).
 
 ## Role in VA Studio Architecture
 
