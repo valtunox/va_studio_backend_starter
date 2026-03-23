@@ -4,7 +4,7 @@ Production-ready FastAPI backend template for building SaaS applications. Suppor
 
 This repo is embedded by **va_studio_ai_builder_backend** (Go, port 8743) to power user-created projects in VA Studio.
 
-> React 18 • Vite 6 • Tailwind CSS • 20 Templates • MIT License
+**React 18 • Vite 6 • Tailwind CSS • 20 Templates • MIT License**
 
 ### VA Studio Frontend Starter (companion)
 
