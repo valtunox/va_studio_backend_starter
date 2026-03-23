@@ -4,6 +4,16 @@ Production-ready FastAPI backend template for building SaaS applications. Suppor
 
 This repo is embedded by **va_studio_ai_builder_backend** (Go, port 8743) to power user-created projects in VA Studio.
 
+**React 18 • Vite 6 • Tailwind CSS • 20 Templates • MIT License**
+
+### VA Studio Frontend Starter (companion)
+
+20 production-ready, fully responsive React templates with dark mode, theme switching, and zero external API dependencies.
+
+Open source collection of beautifully crafted UI templates for rapid prototyping and production apps. Built with React 18, Vite 6, Tailwind CSS, and shadcn/ui components.
+
+For Quick Start, Templates, Features, Tech Stack, and Contributing guides, see the [VA Studio Frontend Starter README](https://github.com/valtunox/va_studio_frontend_starter#readme).
+
 ## Role in VA Studio Architecture
 
 ```
