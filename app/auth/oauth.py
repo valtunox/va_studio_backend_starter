@@ -290,7 +290,7 @@ class OAuthDatabaseManager:
                 RETURNING id, created_at
             """, (
                 account_id, user_id, provider, provider_user_id, email,
-                access_token, refresh_token, str(raw_data or {}).replace("'", '"')
+                access_token, refresh_token, json.dumps(raw_data or {})
             ))
             row = cursor.fetchone()
             conn.commit()
@@ -323,7 +323,7 @@ class OAuthDatabaseManager:
                 values.append(refresh_token)
             if raw_data:
                 updates.append("raw_data = %s")
-                values.append(str(raw_data).replace("'", '"'))
+                values.append(json.dumps(raw_data))
             
             values.extend([provider, provider_user_id])
             
@@ -871,7 +871,10 @@ async def oauth_callback(
             })
             redirect_url = f"{FRONTEND_URL}/auth/oauth/callback/?{params}"
             log_api_response(logger, "GET", path, 200, duration_ms=timer.duration_ms)
-            return RedirectResponse(redirect_url)
+            response = RedirectResponse(redirect_url, status_code=302)
+            response.set_cookie("oauth_access", token_resp.access, max_age=120, httponly=False, samesite="lax", path="/")
+            response.set_cookie("oauth_refresh", token_resp.refresh, max_age=120, httponly=False, samesite="lax", path="/")
+            return response
 
         except Exception as e:
             logger.error(f"OAuth callback error: {e}", exc_info=True)
@@ -1336,11 +1339,14 @@ def _redirect_with_tokens(next_url: str, access_token: str, refresh_token: str) 
     # Trailing slash for Next.js compatibility
     redirect_url = f"{FRONTEND_URL}/auth/oauth/callback/?{params}"
     logger.info(f"Redirecting to frontend with tokens")
-    return RedirectResponse(redirect_url)
+    response = RedirectResponse(redirect_url, status_code=302)
+    response.set_cookie("oauth_access", access_token, max_age=120, httponly=False, samesite="lax", path="/")
+    response.set_cookie("oauth_refresh", refresh_token, max_age=120, httponly=False, samesite="lax", path="/")
+    return response
 
 
 def _redirect_with_error(error: str) -> RedirectResponse:
     """Redirect to frontend with error message."""
     redirect_url = f"{FRONTEND_URL}/auth/login/?oauth_error={urllib.parse.quote(error)}"
-    return RedirectResponse(redirect_url)
+    return RedirectResponse(redirect_url, status_code=302)
 
