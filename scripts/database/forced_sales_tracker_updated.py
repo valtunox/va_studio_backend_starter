@@ -138,7 +138,7 @@ def get_veronica_sales_rep_id(conn) -> Optional[int]:
     try:
         cursor.execute("""
             SELECT id FROM sales_representatives 
-            WHERE LOWER(name) = 'veronica' OR LOWER(email) = 'vfabian@groupnb.ca'
+            WHERE LOWER(name) = 'veronica' OR LOWER(email) = 'vfabian@valtunox.ca'
             LIMIT 1
         """)
         result = cursor.fetchone()

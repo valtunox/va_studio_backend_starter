@@ -39,7 +39,7 @@ NEW_USERS = [
         'username': 'terryheffernan',
         'first_name': 'Terry',
         'last_name': 'Heffernan',
-        'email': 'theffernan@groupnb.ca',
+        'email': 'theffernan@valtunox.ca',
         'telephone': '+1 (555) 200-0000',
         'organization': 'Group NB',
         'password': 'SalesNBGroupVP@2024!',
@@ -54,7 +54,7 @@ NEW_USERS = [
 NEW_SALES_REPS = [
     {
         'name': 'Terry Heffernan',
-        'email': 'theffernan@groupnb.ca',
+        'email': 'theffernan@valtunox.ca',
         'phone_number': '+1 (555) 200-0000',
         'commission_rate': 0.15,
         'notes': 'VP of Sales Management'
@@ -249,7 +249,7 @@ def main():
     logger.info("=" * 70)
     logger.info("\nTerry Heffernan:")
     logger.info("  Username: terryheffernan")
-    logger.info("  Email: theffernan@groupnb.ca")
+    logger.info("  Email: theffernan@valtunox.ca")
     logger.info("  Password: SalesVP@2024!")
     logger.info("  Role: VP of Sales Management")
     logger.info("\n⚠️  User should change password after first login!")

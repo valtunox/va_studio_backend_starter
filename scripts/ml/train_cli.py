@@ -1,5 +1,5 @@
 """
-GroupNB AI HR & Recruitment Platform - Training CLI
+valtunox AI HR & Recruitment Platform - Training CLI
 Command-line interface for training AI models
 """
 

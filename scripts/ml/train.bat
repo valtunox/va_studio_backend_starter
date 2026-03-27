@@ -1,5 +1,5 @@
 @echo off
-REM GroupNB AI HR & Recruitment Platform - Training CLI Launcher (Windows)
+REM valtunox AI HR & Recruitment Platform - Training CLI Launcher (Windows)
 REM Usage: train.bat [command] [options]
 
 set PYTHON_CMD=python

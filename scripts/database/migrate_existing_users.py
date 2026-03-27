@@ -6,12 +6,12 @@ Migration Script: Update Existing Users with Subscription Fields
 This script updates existing users who were created before the subscription
 system was implemented. It will:
 
-1. Create default tenant 'groupnb' (if not exists)
+1. Create default tenant 'valtunox' (if not exists)
 2. Generate subscription_id for users without one
 3. Create subscription records in subscriptions table
 4. Create default workspace for users without one
 5. Set default values for KYC, account_type, referral_code, etc.
-6. Link all existing users to the 'groupnb' tenant
+6. Link all existing users to the 'valtunox' tenant
 7. Add users as workspace owners in workspace_members table
 
 Usage:
@@ -23,7 +23,7 @@ Usage:
     # Verbose output:
     python scripts/migrate_existing_users.py --verbose
 
-Author: GroupNB AI HR & Recruitment Platform
+Author: valtunox AI HR & Recruitment Platform
 Date: 2025-12-03
 """
 
@@ -114,12 +114,12 @@ def generate_tenant_id() -> str:
 # ============================================================================
 
 def get_or_create_default_tenant(cursor, dry_run: bool = False) -> int:
-    """Get or create the default 'groupnb' tenant"""
+    """Get or create the default 'valtunox' tenant"""
     
-    # Check if groupnb tenant already exists
+    # Check if valtunox tenant already exists
     cursor.execute("""
         SELECT id, tenant_id, tenant_name FROM tenants 
-        WHERE tenant_slug = 'groupnb' OR tenant_name = 'GroupNB'
+        WHERE tenant_slug = 'valtunox' OR tenant_name = 'valtunox'
         LIMIT 1
     """)
     result = cursor.fetchone()
@@ -129,10 +129,10 @@ def get_or_create_default_tenant(cursor, dry_run: bool = False) -> int:
         return result[0]
     
     if dry_run:
-        logger.info("  [DRY RUN] Would create default tenant 'groupnb'")
+        logger.info("  [DRY RUN] Would create default tenant 'valtunox'")
         return -1  # Placeholder for dry run
     
-    # Create the default groupnb tenant
+    # Create the default valtunox tenant
     tenant_id = generate_tenant_id()
     
     cursor.execute("""
@@ -147,11 +147,11 @@ def get_or_create_default_tenant(cursor, dry_run: bool = False) -> int:
         RETURNING id
     """, (
         tenant_id,
-        'GroupNB',
-        'groupnb',
+        'valtunox',
+        'valtunox',
         'internal',  # Internal tenant type
-        'admin@groupnb.com',
-        'billing@groupnb.com',
+        'admin@valtunox.com',
+        'billing@valtunox.com',
         'Canada',
         True,   # is_active
         True,   # is_verified
@@ -163,7 +163,7 @@ def get_or_create_default_tenant(cursor, dry_run: bool = False) -> int:
     ))
     
     tenant_db_id = cursor.fetchone()[0]
-    logger.info(f"  ✅ Created default tenant 'GroupNB' with ID: {tenant_db_id}")
+    logger.info(f"  ✅ Created default tenant 'valtunox' with ID: {tenant_db_id}")
     return tenant_db_id
 
 
@@ -473,11 +473,11 @@ def run_migration(dry_run: bool = False, verbose: bool = False):
             return False
         
         # ====================================================================
-        # Step 2: Create/Get default tenant (groupnb)
+        # Step 2: Create/Get default tenant (valtunox)
         # ====================================================================
         tenant_db_id = None
         if create_tenants:
-            print("\n🏢 Step 2: Setting up default tenant 'groupnb'...")
+            print("\n🏢 Step 2: Setting up default tenant 'valtunox'...")
             tenant_db_id = get_or_create_default_tenant(cursor, dry_run)
             if tenant_db_id and tenant_db_id != -1:
                 print(f"  Tenant ID: {tenant_db_id}")

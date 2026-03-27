@@ -10,9 +10,9 @@ This script changes a user's password by looking them up via:
 
 Usage:
     python change_password.py --username veronica --password NewPass@123
-    python change_password.py --email lpalma@groupnb.ca --password Admin@123456
+    python change_password.py --email lpalma@valtunox.ca --password Admin@123456
     python change_password.py --email admin@nbgroupnewsletter.com --password Admin@123456
-    python change_password.py --username veronica --email vfabian@groupnb.ca --password NewPass@123
+    python change_password.py --username veronica --email vfabian@valtunox.ca --password NewPass@123
 """
 
 import sys
@@ -274,10 +274,10 @@ Examples:
   python change_password.py --username veronica --password NewPass@123
   
   # Change password by email
-  python change_password.py --email vfabian@groupnb.ca --password NewPass@123
+  python change_password.py --email vfabian@valtunox.ca --password NewPass@123
   
   # Change password by both username and email (more precise)
-  python change_password.py --username veronica --email vfabian@groupnb.ca --password NewPass@123
+  python change_password.py --username veronica --email vfabian@valtunox.ca --password NewPass@123
   
   # Skip confirmation prompt
   python change_password.py --username veronica --password NewPass@123 --force

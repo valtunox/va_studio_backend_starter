@@ -17,7 +17,7 @@ set -e
 
 # Target directory: first argument, or DATA_DIR env, or ./app/data relative to current dir
 TARGET_DIR="${1:-${DATA_DIR:-./app/data}}"
-S3_BUCKET="${S3_DATA_BUCKET:-${S3_BUCKET:-data.groupnb-ai.com}}"
+S3_BUCKET="${S3_DATA_BUCKET:-${S3_BUCKET:-data.valtunox-ai.com}}"
 
 echo "=============================================="
 echo "  S3 data pull → app/data (HTML + CSV only)"

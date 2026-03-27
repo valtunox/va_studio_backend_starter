@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-GroupNB AI HR & Recruitment Platform - FAISS Embedding Pre-computation
+valtunox AI HR & Recruitment Platform - FAISS Embedding Pre-computation
 Pre-compute embeddings for candidates, skills, jobs using FAISS vector database.
 
 ================================================================================
@@ -496,7 +496,7 @@ def main():
     if args.verbose:
         logging.getLogger().setLevel(logging.DEBUG)
     
-    logger.info("🎯 GroupNB AI HR & Recruitment Platform - FAISS Pre-computation")
+    logger.info("🎯 valtunox AI HR & Recruitment Platform - FAISS Pre-computation")
     logger.info(f"📋 Action: {args.action}")
     
     async def run_action():

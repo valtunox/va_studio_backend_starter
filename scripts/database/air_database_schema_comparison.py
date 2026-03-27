@@ -61,7 +61,7 @@ from app.orm_models import (
     ClientAddress, CriteriaJobWanted, CriteriaSchedule, CriteriaWorkArea,
     Invoice, InvoiceItem, InvoicePunchCard,
     Menu, UserMenu, Payroll, TaxOption,
-    # Philippines/recruitment models (tenant default groupnb-philippines)
+    # Philippines/recruitment models (tenant default valtunox-philippines)
     CandidateAccount, CandidateDeduction, CandidateSkill,
     Deduction, Government, InvoiceCandidate,
     PagIbig, PhilHealth, PunchCardDeduction, PunchCardRate, PunchCardTimeRecord,

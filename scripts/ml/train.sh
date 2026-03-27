@@ -1,5 +1,5 @@
 #!/bin/bash
-# GroupNB AI HR & Recruitment Platform - Training CLI Launcher (Linux/Mac)
+# valtunox AI HR & Recruitment Platform - Training CLI Launcher (Linux/Mac)
 # Usage: ./train.sh [command] [options]
 
 # Find Python executable
