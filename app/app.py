@@ -41,21 +41,49 @@ logger = get_logger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator:
-    """Application lifespan manager."""
+    """
+    Application lifespan manager.
+
+    On every startup (including hot-reload), this:
+      1. Runs migration.py — discovers ORM models, creates tables, adds columns
+      2. Initializes async DB engine + connection pool
+      3. Connects Redis
+
+    This is the core of the low-code/vibe-coding workflow:
+      AI or user adds/modifies models in app/orm/ → app reloads →
+      migration picks up changes → DB schema is synced automatically.
+    """
     # Get service loader
     service_loader = get_service_loader()
     template_info = service_loader.get_template_info()
-    
+
     logger.info(f"Starting {settings.APP_NAME} v{settings.APP_VERSION}")
     logger.info(f"Environment: {settings.ENVIRONMENT.value}")
     logger.info(f"Template: {template_info['name']} ({template_info['type']})")
     logger.info(f"Enabled services: {', '.join(template_info.get('loaded_services', template_info.get('required_services', [])))}")
 
-    # Initialize database (auto-creates tables + syncs schema)
+    # ── Run migration on every startup/reload ──
+    # This discovers all ORM models in app/orm/, creates missing tables,
+    # and adds missing columns. Safe and additive-only.
+    try:
+        from migration import run_migration
+        result = run_migration()
+        if result["success"]:
+            logger.info(
+                f"Migration OK — {result['tables_total']} tables, "
+                f"{result['tables_created']} created, "
+                f"{result['columns_added']} columns added"
+            )
+        else:
+            logger.warning("Migration completed with errors — check logs above")
+    except Exception as e:
+        logger.error(f"Migration failed: {e}")
+
+    # Initialize async database engine + connection pool
     try:
         await init_db()
         table_names = sorted(Base.metadata.tables.keys())
-        logger.info(f"Database initialized – {len(table_names)} tables registered: {table_names}")
+        logger.info(f"Async DB engine ready — {len(table_names)} tables: {table_names}")
     except Exception as e:
         logger.error(f"Database initialization failed: {e}")
 
@@ -69,7 +97,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
     # Initialize Celery (if required)
     if service_loader.requires_celery():
         logger.info("Celery worker integration enabled")
-    
+
     yield
 
     # Shutdown
@@ -252,6 +280,7 @@ if __name__ == "__main__":
         "app.app:app",
         host=settings.HOST,
         port=settings.PORT,
-        reload=False,
+        reload=settings.RELOAD,
+        reload_dirs=["app", "."] if settings.RELOAD else None,
         workers=1 if settings.RELOAD else settings.WORKERS,
     )

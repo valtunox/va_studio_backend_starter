@@ -379,42 +379,28 @@ def sync_schema(sync_engine):
 
 async def init_db():
     """
-    Full database initialisation on app startup:
+    Async database initialisation on app startup:
       1. Create asyncpg connection pool
-      2. Create SQLAlchemy engines
-      3. Discover all ORM models dynamically
-      4. Create any missing tables  (CREATE TABLE IF NOT EXISTS)
-      5. Add any missing columns     (ALTER TABLE ADD COLUMN)
+      2. Create SQLAlchemy async engine
+
+    Note: Table creation and schema sync are handled by migration.py
+    which runs before this in the app lifespan. This function only sets up
+    the async engine and connection pool for runtime queries.
     """
     global engine
 
     # 1. Connection pool
     await create_async_connection_pool()
 
-    # 2. Engine
+    # 2. Async engine
     engine = get_async_engine()
 
-    # 3. Discover ORM models so Base.metadata is fully populated
+    # Ensure ORM models are discovered (they should already be from migration,
+    # but this is a safety net for standalone usage)
     discover_orm_models()
 
-    # 4 + 5. Create tables + sync schema (uses sync engine for DDL)
-    sync_eng = get_sync_engine()
-    if sync_eng is not None:
-        try:
-            Base.metadata.create_all(bind=sync_eng, checkfirst=True)
-            logger.info("Auto-create tables: done (checkfirst=True)")
-        except Exception as exc:
-            logger.error(f"Auto-create tables failed: {exc}")
-
-        try:
-            sync_schema(sync_eng)
-        except Exception as exc:
-            logger.error(f"Schema sync failed: {exc}")
-    else:
-        logger.warning("Sync engine unavailable – skipping table creation and schema sync")
-
     table_count = len(Base.metadata.tables)
-    logger.info(f"Database initialised (pool + engine, {table_count} ORM tables registered)")
+    logger.info(f"Async DB initialised (pool + engine, {table_count} ORM tables registered)")
 
 
 async def close_db():
