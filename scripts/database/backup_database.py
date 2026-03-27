@@ -191,7 +191,7 @@ def main():
         elif fmt == "custom":
             latest_dump_path = destination
 
-    # Create recruitment_latest_updated.sql and recruitment_latest_updated.dump copies
+    # Create cloudsystem_latest_updated.sql and cloudsystem_latest_updated.dump copies
     if latest_sql_path:
         latest_sql_link = out_dir / f"{args.database}_latest_updated.sql"
         if latest_sql_link.exists():

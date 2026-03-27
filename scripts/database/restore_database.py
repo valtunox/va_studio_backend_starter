@@ -186,7 +186,7 @@ def main():
         sys.exit(1)
 
     # Default backup file path
-    default_backup_file = project_root / "app" / "data" / "backups" / "postgres" / "recruitment_latest_updated.dump"
+    default_backup_file = project_root / "app" / "data" / "backups" / "postgres" / "cloudsystem_latest_updated.dump"
 
     parser = argparse.ArgumentParser(description="Restore a PostgreSQL database from .dump or .sql file")
     parser.add_argument("--backup-file", default=str(default_backup_file), help=f"Path to the backup file (.dump or .sql) (default: {default_backup_file})")

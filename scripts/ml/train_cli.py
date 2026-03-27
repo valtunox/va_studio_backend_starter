@@ -1,5 +1,5 @@
 """
-valtunox AI HR & Recruitment Platform - Training CLI
+valtunox AI HR & cloudsystem Platform - Training CLI
 Command-line interface for training AI models
 """
 

@@ -205,8 +205,8 @@ TEMPLATES: List[TemplateInfo] = [
     ),
     TemplateInfo(
         id="candidates",
-        name="Recruitment Hub",
-        description="Recruitment dashboard with candidate tracking, hiring pipeline kanban, interview scheduling, job postings, and team management.",
+        name="cloudsystem Hub",
+        description="cloudsystem dashboard with candidate tracking, hiring pipeline kanban, interview scheduling, job postings, and team management.",
         category="business",
         icon="graduation-cap",
         color_scheme="violet",
@@ -214,7 +214,7 @@ TEMPLATES: List[TemplateInfo] = [
         tech_stack=["React", "Tailwind CSS", "Lucide Icons", "shadcn/ui"],
         thumbnail="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=300&fit=crop",
         sections=["KPIs", "Candidates Table", "Pipeline Board", "Interviews", "Open Positions"],
-        use_cases=["HR teams", "Recruitment agencies", "Talent acquisition", "Hiring management"],
+        use_cases=["HR teams", "cloudsystem agencies", "Talent acquisition", "Hiring management"],
     ),
 ]
 

@@ -23,7 +23,7 @@ Usage:
     # Verbose output:
     python scripts/migrate_existing_users.py --verbose
 
-Author: valtunox AI HR & Recruitment Platform
+Author: valtunox AI HR & cloudsystem Platform
 Date: 2025-12-03
 """
 

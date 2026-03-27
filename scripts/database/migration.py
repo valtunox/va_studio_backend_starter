@@ -215,7 +215,7 @@ EXPECTED_TABLES = {
 
 def ensure_database_exists():
     """
-    Create the recruitment database if it doesn't exist
+    Create the cloudsystem database if it doesn't exist
     Connects to PostgreSQL server and creates database
     """
     try:
@@ -241,19 +241,19 @@ def ensure_database_exists():
         conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
         cursor = conn.cursor()
         
-        # Check if recruitment database exists
+        # Check if cloudsystem database exists
         cursor.execute("""
-            SELECT 1 FROM pg_database WHERE datname = 'recruitment'
+            SELECT 1 FROM pg_database WHERE datname = 'cloudsystem'
         """)
         
         exists = cursor.fetchone()
         
         if exists:
-            logger.info("✅ Database 'recruitment' already exists")
+            logger.info("✅ Database 'cloudsystem' already exists")
         else:
-            logger.info("📊 Creating database 'recruitment'...")
-            cursor.execute("CREATE DATABASE recruitment")
-            logger.info("✅ Database 'recruitment' created successfully!")
+            logger.info("📊 Creating database 'cloudsystem'...")
+            cursor.execute("CREATE DATABASE cloudsystem")
+            logger.info("✅ Database 'cloudsystem' created successfully!")
         
         cursor.close()
         conn.close()
@@ -767,7 +767,7 @@ def run_full_migration():
     logger.info("DATABASE MIGRATION - COMPLETE SETUP")
     logger.info("=" * 70)
     logger.info("This will set up your database with all core tables:")
-    logger.info("  - Database: recruitment (auto-created if needed)")
+    logger.info("  - Database: cloudsystem (auto-created if needed)")
     logger.info("  - users (1 admin + 5 regular users)")
     logger.info("  - sales_representatives (6 sales reps)")
     logger.info("  - leads")

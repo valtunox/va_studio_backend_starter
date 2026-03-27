@@ -14,7 +14,7 @@
 #       database:
 #         description: 'Database name'
 #         required: false
-#         default: 'recruitment'
+#         default: 'cloudsystem'
 #       host:
 #         description: 'Database host'
 #         required: false
@@ -68,13 +68,13 @@
 #         env:
 #           POSTGRES_HOST: ${{ secrets.POSTGRES_HOST || github.event.inputs.host || 'studio-db.valtunox.com' }}
 #           POSTGRES_PORT: ${{ secrets.POSTGRES_PORT || github.event.inputs.port || '5432' }}
-#           POSTGRES_DB: ${{ secrets.POSTGRES_DB || github.event.inputs.database || 'recruitment' }}
+#           POSTGRES_DB: ${{ secrets.POSTGRES_DB || github.event.inputs.database || 'cloudsystem' }}
 #           POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
 #           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
 #         run: |
 #           echo "📦 Starting database backup..."
 #           python scripts/database/backup_database.py \
-#             --database ${{ secrets.POSTGRES_DB || github.event.inputs.database || 'recruitment' }} \
+#             --database ${{ secrets.POSTGRES_DB || github.event.inputs.database || 'cloudsystem' }} \
 #             --host ${{ secrets.POSTGRES_HOST || github.event.inputs.host || 'studio-db.valtunox.com' }} \
 #             --port ${{ secrets.POSTGRES_PORT || github.event.inputs.port || '5432' }} \
 #             --user ${{ secrets.POSTGRES_USER }} \
@@ -108,14 +108,14 @@
 #             --recursive \
 #             --exclude "*" \
 #             --include "*.dump" \
-#             --metadata "uploaded-by=github-actions,workflow=database-backup,timestamp=${TIMESTAMP},database=${{ github.event.inputs.database || 'recruitment' }}"
+#             --metadata "uploaded-by=github-actions,workflow=database-backup,timestamp=${TIMESTAMP},database=${{ github.event.inputs.database || 'cloudsystem' }}"
           
 #           echo "Uploading .sql files..."
 #           aws s3 cp "$BACKUP_DIR/" "s3://${S3_BUCKET}/${S3_PREFIX}/" \
 #             --recursive \
 #             --exclude "*" \
 #             --include "*.sql" \
-#             --metadata "uploaded-by=github-actions,workflow=database-backup,timestamp=${TIMESTAMP},database=${{ github.event.inputs.database || 'recruitment' }}"
+#             --metadata "uploaded-by=github-actions,workflow=database-backup,timestamp=${TIMESTAMP},database=${{ github.event.inputs.database || 'cloudsystem' }}"
           
 #           echo "✅ Upload complete!"
 #           echo "📁 Files uploaded to: s3://${S3_BUCKET}/${S3_PREFIX}/"
@@ -132,7 +132,7 @@
 #         run: |
 #           echo "## 💾 Database Backup Completed Successfully" >> $GITHUB_STEP_SUMMARY
 #           echo "" >> $GITHUB_STEP_SUMMARY
-#           echo "**Database:** ${{ github.event.inputs.database || 'recruitment' }}" >> $GITHUB_STEP_SUMMARY
+#           echo "**Database:** ${{ github.event.inputs.database || 'cloudsystem' }}" >> $GITHUB_STEP_SUMMARY
 #           echo "**Host:** ${{ github.event.inputs.host || 'studio-db.valtunox.com' }}" >> $GITHUB_STEP_SUMMARY
 #           echo "**S3 Bucket:** ${{ github.event.inputs.s3_bucket || 'data.valtunox.com' }}" >> $GITHUB_STEP_SUMMARY
 #           echo "**S3 Prefix:** ${{ github.event.inputs.s3_prefix || 'backups' }}" >> $GITHUB_STEP_SUMMARY
@@ -141,8 +141,8 @@
 #           echo "### 📦 Backup Files:" >> $GITHUB_STEP_SUMMARY
 #           echo "- `.dump` files (custom format) - Use with pg_restore" >> $GITHUB_STEP_SUMMARY
 #           echo "- `.sql` files (plain format) - Use with psql" >> $GITHUB_STEP_SUMMARY
-#           echo "- `recruitment_latest_updated.sql` - Latest SQL backup (default for restore)" >> $GITHUB_STEP_SUMMARY
-#           echo "- `recruitment_latest_updated.dump` - Latest dump backup" >> $GITHUB_STEP_SUMMARY
+#           echo "- `cloudsystem_latest_updated.sql` - Latest SQL backup (default for restore)" >> $GITHUB_STEP_SUMMARY
+#           echo "- `cloudsystem_latest_updated.dump` - Latest dump backup" >> $GITHUB_STEP_SUMMARY
 #           echo "" >> $GITHUB_STEP_SUMMARY
 #           echo "### 🔗 S3 Location:" >> $GITHUB_STEP_SUMMARY
 #           echo "https://s3.console.aws.amazon.com/s3/buckets/${{ github.event.inputs.s3_bucket || 'data.valtunox.com' }}?prefix=${{ github.event.inputs.s3_prefix || 'backups' }}/" >> $GITHUB_STEP_SUMMARY
@@ -152,7 +152,7 @@
 #         run: |
 #           echo "## ❌ Database Backup Failed" >> $GITHUB_STEP_SUMMARY
 #           echo "" >> $GITHUB_STEP_SUMMARY
-#           echo "**Database:** ${{ github.event.inputs.database || 'recruitment' }}" >> $GITHUB_STEP_SUMMARY
+#           echo "**Database:** ${{ github.event.inputs.database || 'cloudsystem' }}" >> $GITHUB_STEP_SUMMARY
 #           echo "**Time:** $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
 #           echo "" >> $GITHUB_STEP_SUMMARY
 #           echo "Please check the workflow logs for details." >> $GITHUB_STEP_SUMMARY

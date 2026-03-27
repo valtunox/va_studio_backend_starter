@@ -68,7 +68,7 @@ For Quick Start, Templates, Features, Tech Stack, and Contributing guides, see t
   - CRM -- Contacts, companies, deals, pipeline
   - ERP -- Inventory, procurement, orders, finance
   - Leads -- Lead capture, scoring, assignment
-  - Candidates -- Recruitment, applications, interviews
+  - Candidates -- cloudsystem, applications, interviews
   - Social -- Profiles, feeds, messaging
   - Dashboard -- Analytics, metrics, charts
 

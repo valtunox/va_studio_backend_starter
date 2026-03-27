@@ -1,5 +1,5 @@
 """
-Candidates/Recruitment Routes
+Candidates/cloudsystem Routes
 
 Stub for future implementation (candidates, jobs, interviews, pipeline).
 """
@@ -14,6 +14,6 @@ async def candidates_info():
     """Candidates service info - stub for future implementation."""
     return {
         "service": "candidates",
-        "message": "Recruitment (candidates, jobs, interviews) - coming soon",
+        "message": "cloudsystem (candidates, jobs, interviews) - coming soon",
         "status": "stub",
     }

@@ -1,1 +1,1 @@
-"""Candidates/recruitment services - stub for future implementation."""
+"""Candidates/cloudsystem services - stub for future implementation."""

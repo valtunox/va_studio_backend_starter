@@ -36,11 +36,11 @@ Example usage
 
     python scripts/db_to_db_database_migration_pipeline.py \
       --source-host 127.0.0.1 \
-      --source-db recruitment \
+      --source-db cloudsystem \
       --source-user postgres \
       --source-password 'password@12345' \
       --dest-host 127.0.0.1 \
-      --dest-db recruitment \
+      --dest-db cloudsystem \
       --dest-user postgres \
       --dest-password 'password@12345' \
       --s3-bucket aideveloper-sales-leads \

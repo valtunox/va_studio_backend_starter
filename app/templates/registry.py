@@ -324,8 +324,8 @@ template_configs: Dict[TemplateType, TemplateConfig] = {
     ),
     
     TemplateType.CANDIDATES: TemplateConfig(
-        name="Recruitment Template",
-        description="Recruitment dashboard with candidate tracking, hiring pipeline, and interview scheduling",
+        name="cloudsystem Template",
+        description="cloudsystem dashboard with candidate tracking, hiring pipeline, and interview scheduling",
         required_services=[
             "auth",
             "users",
