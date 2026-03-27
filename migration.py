@@ -304,6 +304,16 @@ def run_migration() -> dict:
 
     summary["success"] = True
 
+    # 7. Seed data if tables are empty (first run)
+    try:
+        from scripts.seed_data import main as seed_main
+        seed_main()
+        summary["seeded"] = True
+        logger.info("Seed data check complete")
+    except Exception as e:
+        summary["seeded"] = False
+        logger.warning(f"Seed data skipped: {e}")
+
     # Log final state
     table_names = sorted(Base.metadata.tables.keys())
     logger.info(f"Migration complete — {len(table_names)} tables: {table_names}")

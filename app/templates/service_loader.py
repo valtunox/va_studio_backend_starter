@@ -52,6 +52,8 @@ class ServiceLoader:
         "erp",
         "leads",
         "candidates",
+        "nutrition",
+        "finance",
     ]
 
     # Service module mappings
@@ -79,6 +81,8 @@ class ServiceLoader:
         "erp": ("app.services.erp.routes", "router"),
         "leads": ("app.services.leads.routes", "router"),
         "candidates": ("app.services.candidates.routes", "router"),
+        "nutrition": ("app.services.nutrition.routes", "router"),
+        "finance": ("app.services.finance.routes", "router"),
     }
     
     def __init__(self):

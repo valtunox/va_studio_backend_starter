@@ -73,3 +73,4 @@ RequireLeadsProject = require_project_template(
 RequireCandidatesProject = require_project_template([ProjectTemplateType.CANDIDATES.value])
 RequirePortfolioProject = require_project_template([ProjectTemplateType.PORTFOLIO.value])
 RequireSaasProject = require_project_template([ProjectTemplateType.SAAS.value])
+RequireErpProject = require_project_template([ProjectTemplateType.ERP.value])

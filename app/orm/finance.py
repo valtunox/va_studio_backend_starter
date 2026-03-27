@@ -127,7 +127,8 @@ class Account(Base, TimestampMixin, SoftDeleteMixin):
 
     project: Mapped["Project"] = relationship("Project", lazy="selectin")
     transactions: Mapped[List["Transaction"]] = relationship(
-        "Transaction", back_populates="account", lazy="selectin",
+        "Transaction", back_populates="account",
+        foreign_keys="[Transaction.account_id]", lazy="selectin",
     )
 
 

@@ -32,12 +32,18 @@ from app.auth.dependencies import get_current_user, get_current_active_user
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
-class LoginRequest:
-    """Login request form."""
+from pydantic import BaseModel
 
-    def __init__(self, email: str, password: str):
-        self.email = email
-        self.password = password
+
+class LoginRequest(BaseModel):
+    """Login request body."""
+    email: str
+    password: str
+
+
+class RefreshRequest(BaseModel):
+    """Refresh token request body."""
+    refresh_token: str
 
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
@@ -84,8 +90,7 @@ async def register(
 
 @router.post("/login", response_model=TokenResponse)
 async def login(
-    email: str,
-    password: str,
+    body: LoginRequest,
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     """
@@ -94,10 +99,10 @@ async def login(
     Returns access and refresh tokens on successful authentication.
     """
     # Get user by email
-    result = await db.execute(select(User).where(User.email == email))
+    result = await db.execute(select(User).where(User.email == body.email))
     user = result.scalar_one_or_none()
 
-    if not user or not verify_password(password, user.hashed_password):
+    if not user or not verify_password(body.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
@@ -129,7 +134,7 @@ async def login(
 
 @router.post("/refresh", response_model=TokenResponse)
 async def refresh_token(
-    refresh_token: str,
+    body: RefreshRequest,
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     """
@@ -137,7 +142,7 @@ async def refresh_token(
 
     Returns new access and refresh tokens.
     """
-    user_id = verify_token(refresh_token, "refresh")
+    user_id = verify_token(body.refresh_token, "refresh")
 
     if not user_id:
         raise HTTPException(
