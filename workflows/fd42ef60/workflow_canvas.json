@@ -1,0 +1,135 @@
+{
+  "workflow": {
+    "name": "NanoClawWorkflow1",
+    "version": "1.0.0",
+    "session_id": "fd42ef60-c525-4ade-9930-04da76856fa5",
+    "nodes": [
+      {
+        "id": "trigger-1",
+        "type": "trigger",
+        "config": {
+          "cloud_provider": "internal",
+          "data": {
+            "description": "Start your workflow - drag nodes from the sidebar to build your infrastructure",
+            "label": "Trigger"
+          },
+          "description": "Workflow entry point",
+          "intent": "workflow_start",
+          "resource_type": "workflow_trigger"
+        },
+        "position": {
+          "x": 30,
+          "y": 30
+        },
+        "data": {
+          "description": "Start your workflow - drag nodes from the sidebar to build your infrastructure",
+          "label": "Trigger",
+          "properties": {}
+        }
+      },
+      {
+        "id": "2",
+        "type": "action",
+        "config": {
+          "cloud_provider": "aws",
+          "data": {
+            "description": "API management",
+            "label": "API Gateway"
+          },
+          "intent": "provision_api",
+          "resource_type": "aws_api_gateway_rest_api"
+        },
+        "position": {
+          "x": 1320,
+          "y": 60
+        },
+        "data": {
+          "description": "API management",
+          "label": "API Gateway"
+        }
+      },
+      {
+        "id": "3",
+        "type": "action",
+        "config": {
+          "cloud_provider": "aws",
+          "data": {
+            "description": "Simple Notification Service",
+            "label": "SNS"
+          },
+          "intent": "provision_topic",
+          "resource_type": "aws_sns_topic"
+        },
+        "position": {
+          "x": 720,
+          "y": 270
+        },
+        "data": {
+          "description": "Simple Notification Service",
+          "label": "SNS"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "edge-2-3-1774694946592",
+        "source": "2",
+        "target": "3",
+        "type": "custom",
+        "data": {
+          "connectionType": "normal",
+          "description": "",
+          "isAnimated": false,
+          "isHighlighted": false,
+          "label": "",
+          "multiConnection": false,
+          "sourceNodeType": "action",
+          "status": "established",
+          "targetNodeType": "action"
+        }
+      },
+      {
+        "id": "edge-trigger-1-3-1774694948431",
+        "source": "trigger-1",
+        "target": "3",
+        "type": "custom",
+        "data": {
+          "connectionType": "normal",
+          "description": "",
+          "isAnimated": false,
+          "isHighlighted": false,
+          "label": "",
+          "multiConnection": false,
+          "sourceNodeType": "trigger",
+          "status": "established",
+          "targetNodeType": "action"
+        }
+      },
+      {
+        "id": "edge-3-2-1774694950247",
+        "source": "3",
+        "target": "2",
+        "type": "custom",
+        "data": {
+          "connectionType": "normal",
+          "description": "",
+          "isAnimated": false,
+          "isHighlighted": false,
+          "label": "",
+          "multiConnection": false,
+          "sourceNodeType": "action",
+          "status": "established",
+          "targetNodeType": "action"
+        }
+      }
+    ],
+    "configuration": {
+      "environment": "production",
+      "region": "us-east-1",
+      "timeout": 300,
+      "retry_attempts": 3,
+      "error_handling": "stop",
+      "timezone": "UTC"
+    }
+  }
+}
