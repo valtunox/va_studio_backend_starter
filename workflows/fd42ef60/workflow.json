@@ -1,0 +1,204 @@
+{
+  "name": "NanoClawWorkflow1",
+  "nodes": [
+    {
+      "id": "trigger-1",
+      "type": "trigger",
+      "config": {
+        "cloud_provider": "internal",
+        "data": {
+          "description": "Start your workflow - drag nodes from the sidebar to build your infrastructure",
+          "label": "Trigger"
+        },
+        "description": "Workflow entry point",
+        "intent": "workflow_start",
+        "resource_type": "workflow_trigger"
+      },
+      "position": {
+        "x": 30,
+        "y": 30
+      },
+      "data": {
+        "description": "Start your workflow - drag nodes from the sidebar to build your infrastructure",
+        "label": "Trigger",
+        "properties": {}
+      }
+    },
+    {
+      "id": "2",
+      "type": "action",
+      "config": {
+        "cloud_provider": "aws",
+        "data": {
+          "description": "API management",
+          "label": "API Gateway"
+        },
+        "intent": "provision_api",
+        "resource_type": "aws_api_gateway_rest_api"
+      },
+      "position": {
+        "x": 1320,
+        "y": 60
+      },
+      "data": {
+        "description": "API management",
+        "label": "API Gateway"
+      }
+    },
+    {
+      "id": "3",
+      "type": "action",
+      "config": {
+        "cloud_provider": "aws",
+        "data": {
+          "description": "Simple Notification Service",
+          "label": "SNS"
+        },
+        "intent": "provision_topic",
+        "resource_type": "aws_sns_topic"
+      },
+      "position": {
+        "x": 720,
+        "y": 270
+      },
+      "data": {
+        "description": "Simple Notification Service",
+        "label": "SNS"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge-2-3-1774694946592",
+      "source": "2",
+      "target": "3",
+      "type": "custom",
+      "data": {
+        "connectionType": "normal",
+        "description": "",
+        "isAnimated": false,
+        "isHighlighted": false,
+        "label": "",
+        "multiConnection": false,
+        "sourceNodeType": "action",
+        "status": "established",
+        "targetNodeType": "action"
+      }
+    },
+    {
+      "id": "edge-trigger-1-3-1774694948431",
+      "source": "trigger-1",
+      "target": "3",
+      "type": "custom",
+      "data": {
+        "connectionType": "normal",
+        "description": "",
+        "isAnimated": false,
+        "isHighlighted": false,
+        "label": "",
+        "multiConnection": false,
+        "sourceNodeType": "trigger",
+        "status": "established",
+        "targetNodeType": "action"
+      }
+    },
+    {
+      "id": "edge-3-2-1774694950247",
+      "source": "3",
+      "target": "2",
+      "type": "custom",
+      "data": {
+        "connectionType": "normal",
+        "description": "",
+        "isAnimated": false,
+        "isHighlighted": false,
+        "label": "",
+        "multiConnection": false,
+        "sourceNodeType": "action",
+        "status": "established",
+        "targetNodeType": "action"
+      }
+    }
+  ],
+  "metadata": {
+    "name": "NanoClawWorkflow1",
+    "description": "NanoClawWorkflow1",
+    "version": "1.0.0",
+    "error_handling": "stop",
+    "timezone": "UTC",
+    "retry_attempts": 3,
+    "settings": {
+      "active": true,
+      "creation": {
+        "cicd": {
+          "provider": "github-actions"
+        },
+        "clone_terraform": false,
+        "git": {
+          "auto_commit": false,
+          "branch": "main",
+          "provider": "github",
+          "repo_url": "https://github.com/valtunox/va_studio_backend_starter.git"
+        },
+        "target_node": {
+          "id": "node-1",
+          "ip": "127.0.0.1",
+          "is_primary": true,
+          "name": "joelwembo",
+          "port": 8744,
+          "status": "online"
+        },
+        "target_type": "cloud-node"
+      },
+      "description": "NanoClawWorkflow1",
+      "environment": {
+        "variables": {}
+      },
+      "errorHandling": {
+        "maxRetries": 3,
+        "mode": "stop",
+        "retryDelay": 1000
+      },
+      "execution": {
+        "executionOrder": "last-first",
+        "maxExecutions": 100,
+        "saveDataSuccessOnly": false,
+        "saveExecutionData": true,
+        "timeout": 3600
+      },
+      "metadata": {
+        "category": "",
+        "tags": [],
+        "version": "1.0.0"
+      },
+      "name": "NanoClawWorkflow1",
+      "notifications": {
+        "channels": [],
+        "onError": true,
+        "onSuccess": false,
+        "onWarning": false
+      },
+      "schedule": {
+        "cronExpression": "0 * * * *",
+        "enabled": false,
+        "timezone": "UTC"
+      },
+      "security": {
+        "allowedUsers": [],
+        "ipWhitelist": [],
+        "rateLimit": 100,
+        "requireAuth": false
+      },
+      "webhook": {
+        "authentication": "none",
+        "enabled": false,
+        "httpMethod": "POST",
+        "path": "",
+        "responseMode": "lastNode"
+      }
+    }
+  },
+  "workflow_id": "6c1a1d51-2261-4915-a3d4-4bf439f6e0d8",
+  "session_id": "fd42ef60-c525-4ade-9930-04da76856fa5",
+  "terraform_code": "# =============================================================================\n# TERRAFORM CONFIGURATION - Auto-generated from Workflow Canvas\n# Generated: 2026-03-28T10:49:11.927Z\n# Nodes: 3 | Connections: 3\n# =============================================================================\n\nterraform {\n  required_version = \"\u003e= 1.0\"\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \"~\u003e 5.0\"\n    }\n  }\n}\n\nprovider \"aws\" {\n  region = var.aws_region\n}\n\n# =============================================================================\n# VARIABLES\n# =============================================================================\n\nvariable \"aws_region\" {\n  description = \"AWS region\"\n  type        = string\n  default     = \"us-east-1\"\n}\n\n# =============================================================================\n# RESOURCES\n# =============================================================================\n\nresource \"aws_api_gateway_rest_api\" \"api_gateway_2\" {\n\n  tags = {\n    Name        = \"api_gateway_2\"\n    Environment = \"development\"\n    ManagedBy   = \"terraform\"\n    CreatedBy   = \"workflow-canvas\"\n  }\n\n  depends_on = [\n    aws_sns_topic.sns_3,\n  ]\n}\n\nresource \"aws_sns_topic\" \"sns_3\" {\n\n  tags = {\n    Name        = \"sns_3\"\n    Environment = \"development\"\n    ManagedBy   = \"terraform\"\n    CreatedBy   = \"workflow-canvas\"\n  }\n\n  depends_on = [\n    aws_api_gateway_rest_api.api_gateway_2,\n  ]\n}\n\n# =============================================================================\n# OUTPUTS\n# =============================================================================\n\noutput \"api_gateway_2_id\" {\n  description = \"ID of api_gateway_2\"\n  value       = aws_api_gateway_rest_api.api_gateway_2.id\n}\n\noutput \"sns_3_id\" {\n  description = \"ID of sns_3\"\n  value       = aws_sns_topic.sns_3.id\n}\n"
+}
