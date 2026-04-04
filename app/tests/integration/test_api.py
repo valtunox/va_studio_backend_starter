@@ -20,7 +20,7 @@ class TestHealthEndpoints:
     @pytest.mark.asyncio
     async def test_liveness_check(self, client: AsyncClient):
         """Test liveness check."""
-        response = await client.get("/health/live")
+        response = await client.get("/api/v1/health/live")
 
         assert response.status_code == 200
         data = response.json()

@@ -5,7 +5,7 @@ from typing import AsyncGenerator, Generator
 
 import pytest
 import pytest_asyncio
-from httpx import AsyncClient
+from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.pool import NullPool
 
@@ -60,10 +60,16 @@ async def setup_database():
 
 @pytest_asyncio.fixture
 async def db(setup_database) -> AsyncGenerator[AsyncSession, None]:
-    """Get test database session."""
+    """Get test database session with per-test cleanup."""
     async with test_session_maker() as session:
         yield session
         await session.rollback()
+
+    # Clean up any committed data after each test
+    async with test_session_maker() as cleanup:
+        from sqlalchemy import text
+        await cleanup.execute(text("DELETE FROM users"))
+        await cleanup.commit()
 
 
 @pytest_asyncio.fixture
@@ -75,7 +81,7 @@ async def client(db: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
 
     app.dependency_overrides[get_db] = override_get_db
 
-    async with AsyncClient(app=app, base_url="http://test") as ac:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         yield ac
 
     app.dependency_overrides.clear()

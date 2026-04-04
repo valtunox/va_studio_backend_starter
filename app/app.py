@@ -195,7 +195,7 @@ async def root():
     
     if settings.DEBUG:
         response["debug_info"] = {
-            "required_services": template_info["required_services"],
+            "loaded_services": template_info.get("loaded_services", []),
             "public_services": service_loader.PUBLIC_SERVICES,
             "requires_redis": template_info["requires_redis"],
             "requires_celery": template_info["requires_celery"],
