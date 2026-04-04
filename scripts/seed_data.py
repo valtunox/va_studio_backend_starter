@@ -6,7 +6,7 @@ Usage:
     python scripts/seed_data.py
 
 Idempotent — checks if admin user already exists and skips if so.
-Uses the sync SQLAlchemy engine from the project.
+Uses the sync SQLAlchemy engine from the project. 2
 """
 
 import sys
