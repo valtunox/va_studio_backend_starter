@@ -11,7 +11,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 ENV PIP_ROOT_USER_ACTION=ignore PIP_DISABLE_PIP_VERSION_CHECK=1 DEBIAN_FRONTEND=noninteractive
 
-# Install system dependencies
+# Install system dependencies (minimal set — Playwright libs commented out to speed up builds)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     gcc \
@@ -20,26 +20,24 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libglib2.0-0 libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 libcups2 \
-    libdbus-1-3 libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 \
-    libxrandr2 libxshmfence1 libgbm1 libgtk-3-0 libx11-6 libxext6 libxrender1 \
-    libxcb1 libcairo2 libpango-1.0-0 libasound2 fonts-liberation libexpat1 \
-    && rm -rf /var/lib/apt/lists/*
+# Playwright system libraries — uncomment when web-scraping support is needed
+# RUN apt-get update && apt-get install -y --no-install-recommends \
+#     libglib2.0-0 libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 libcups2 \
+#     libdbus-1-3 libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 \
+#     libxrandr2 libxshmfence1 libgbm1 libgtk-3-0 libx11-6 libxext6 libxrender1 \
+#     libxcb1 libcairo2 libpango-1.0-0 libasound2 fonts-liberation libexpat1 \
+#     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements first for better caching
+# Copy requirements first for better layer caching
 COPY requirements.txt .
 
 # Install Python dependencies
-# Upgrade pip and install build tools, then install requirements
-# Using pip resolver v2 with timeout to speed up dependency resolution
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
-    PIP_DEFAULT_TIMEOUT=100 pip install --no-cache-dir \
-    --use-deprecated=legacy-resolver -r requirements.txt
+    pip install --no-cache-dir -r requirements.txt
 
-# Install Playwright browsers (for web scraping)
-RUN playwright install chromium  && \
-    playwright install-deps chromium
+# Playwright browser install — uncomment when web-scraping support is needed
+# RUN playwright install chromium && \
+#     playwright install-deps chromium
 
 # Copy application code
 COPY . .
