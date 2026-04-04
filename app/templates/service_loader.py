@@ -51,7 +51,6 @@ class ServiceLoader:
         "crm",
         "erp",
         "leads",
-        "candidates",
         "nutrition",
         "finance",
     ]
@@ -80,7 +79,6 @@ class ServiceLoader:
         "crm": ("app.services.crm.routes", "router"),
         "erp": ("app.services.erp.routes", "router"),
         "leads": ("app.services.leads.routes", "router"),
-        "candidates": ("app.services.candidates.routes", "router"),
         "nutrition": ("app.services.nutrition.routes", "router"),
         "finance": ("app.services.finance.routes", "router"),
     }

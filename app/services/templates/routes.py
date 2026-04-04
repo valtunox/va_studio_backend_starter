@@ -203,19 +203,6 @@ TEMPLATES: List[TemplateInfo] = [
         sections=["KPIs", "Filter Tabs", "Leads Table", "Lead Sources", "Activity Feed", "Conversion Funnel"],
         use_cases=["Sales teams", "Lead generation", "Marketing qualified leads", "Business development"],
     ),
-    TemplateInfo(
-        id="candidates",
-        name="cloudsystem Hub",
-        description="cloudsystem dashboard with candidate tracking, hiring pipeline kanban, interview scheduling, job postings, and team management.",
-        category="business",
-        icon="graduation-cap",
-        color_scheme="violet",
-        features=["Candidate Table", "Hiring Pipeline", "Interview Schedule", "Job Postings", "Status Tracking", "Filter Tabs"],
-        tech_stack=["React", "Tailwind CSS", "Lucide Icons", "shadcn/ui"],
-        thumbnail="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=300&fit=crop",
-        sections=["KPIs", "Candidates Table", "Pipeline Board", "Interviews", "Open Positions"],
-        use_cases=["HR teams", "cloudsystem agencies", "Talent acquisition", "Hiring management"],
-    ),
 ]
 
 # Index for quick lookup

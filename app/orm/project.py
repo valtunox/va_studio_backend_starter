@@ -36,7 +36,6 @@ class ProjectTemplateType(str, Enum):
     SOCIAL = "social"
     DASHBOARD = "dashboard"
     LEADS = "leads"
-    CANDIDATES = "candidates"
 
 
 class Project(Base, TimestampMixin, SoftDeleteMixin):

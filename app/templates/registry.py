@@ -27,7 +27,6 @@ class TemplateType(str, Enum):
     SOCIAL = "social"
     DASHBOARD = "dashboard"
     LEADS = "leads"
-    CANDIDATES = "candidates"
 
 
 @dataclass
@@ -200,7 +199,7 @@ template_configs: Dict[TemplateType, TemplateConfig] = {
     
     TemplateType.ERP: TemplateConfig(
         name="ERP Template",
-        description="Enterprise resource planning with inventory, HR, and finance modules",
+        description="Enterprise resource planning with inventory and finance modules",
         required_services=[
             "auth",
             "users",
@@ -219,7 +218,6 @@ template_configs: Dict[TemplateType, TemplateConfig] = {
             "enable_billing": True,
             "enable_subscriptions": True,
             "enable_inventory": True,
-            "enable_hr": True,
             "enable_finance": True,
             "enable_procurement": True,
             "enable_manufacturing": True,
@@ -323,36 +321,6 @@ template_configs: Dict[TemplateType, TemplateConfig] = {
         requires_billing=True,
     ),
     
-    TemplateType.CANDIDATES: TemplateConfig(
-        name="cloudsystem Template",
-        description="cloudsystem dashboard with candidate tracking, hiring pipeline, and interview scheduling",
-        required_services=[
-            "auth",
-            "users",
-            "analytics",
-            "ai",
-            "notifications",
-            "health",
-        ],
-        required_middleware=[
-            "rate_limit",
-            "security_headers",
-            "request_logging",
-        ],
-        feature_flags={
-            "enable_billing": True,
-            "enable_subscriptions": True,
-            "enable_candidates": True,
-            "enable_jobs": True,
-            "enable_interviews": True,
-            "enable_pipeline": True,
-            "enable_reports": True,
-            "enable_team_management": True,
-        },
-        requires_redis=True,
-        requires_celery=True,
-        requires_billing=True,
-    ),
 }
 
 

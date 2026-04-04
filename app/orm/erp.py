@@ -404,7 +404,7 @@ class Department(Base, TimestampMixin):
 # ---------------------------------------------------------------------------
 
 class Employee(Base, TimestampMixin, SoftDeleteMixin):
-    """Employee — HR record linked to a department."""
+    """Employee record linked to a department."""
 
     __tablename__ = "employees"
 
