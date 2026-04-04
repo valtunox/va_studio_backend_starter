@@ -3,13 +3,14 @@ OAuth Social Login Module - All-in-One
 ======================================
 
 Complete OAuth2 social login system for InfinityAI FastAPI Platform.
-Supports Google, GitHub, and Microsoft authentication.
+Supports Google, GitHub, GitLab, and Microsoft authentication.
 Uses existing Django PostgreSQL tables (users, organizations, oauth_accounts).
 
 Features:
 - Backend-owned OAuth2 Authorization Code flow
 - Google OAuth2 login
 - GitHub OAuth login
+- GitLab OAuth login
 - Microsoft OAuth login
 - Account linking (existing users)
 - Auto user creation with organization/workspace
@@ -106,6 +107,21 @@ OAUTH_PROVIDERS = {
         "userinfo_url": "https://api.github.com/user",
         "scopes": ["user:email", "read:user", "repo"],
         "callback_path": "/api/v1/auth/oauth/callback/github"
+    },
+    "gitlab": {
+        "client_id": (
+            os.getenv("GITLAB_CLIENT_ID", "")
+            or os.getenv("GITLAB_OAUTH_CLIENT_ID", "")
+        ),
+        "client_secret": (
+            os.getenv("GITLAB_CLIENT_SECRET", "")
+            or os.getenv("GITLAB_OAUTH_CLIENT_SECRET", "")
+        ),
+        "auth_url": "https://gitlab.com/oauth/authorize",
+        "token_url": "https://gitlab.com/oauth/token",
+        "userinfo_url": "https://gitlab.com/api/v4/user",
+        "scopes": ["read_user", "read_api"],
+        "callback_path": "/api/v1/auth/oauth/callback/gitlab"
     },
     "microsoft": {
         "client_id": os.getenv("MICROSOFT_CLIENT_ID", ""),
@@ -383,7 +399,12 @@ class OAuthDatabaseManager:
             
             # Update social field based on provider
             social_field = f"social_{user_info.provider}"
-            if social_field in ["social_google", "social_github", "social_microsoft"]:
+            if social_field in [
+                "social_google",
+                "social_github",
+                "social_gitlab",
+                "social_microsoft",
+            ]:
                 cursor.execute(f"""
                     UPDATE users_user SET {social_field} = %s WHERE id = %s
                 """, (user_info.provider_user_id, user_id))
@@ -467,7 +488,12 @@ class OAuthDatabaseManager:
             conn = basic_postgres_connection()
             cursor = conn.cursor()
             social_field = f"social_{provider}"
-            if social_field in ["social_google", "social_github", "social_microsoft"]:
+            if social_field in [
+                "social_google",
+                "social_github",
+                "social_gitlab",
+                "social_microsoft",
+            ]:
                 cursor.execute(f"""
                     UPDATE users_user SET {social_field} = %s WHERE id = %s
                 """, (provider_user_id, user_id))
@@ -532,7 +558,7 @@ class OAuthService:
             data["grant_type"] = "authorization_code"
         elif provider == "github":
             headers["Accept"] = "application/json"
-        elif provider == "microsoft":
+        elif provider in {"gitlab", "microsoft"}:
             data["grant_type"] = "authorization_code"
         
         try:
@@ -638,6 +664,18 @@ class OAuthService:
                 avatar_url=data.get("avatar_url"),
                 raw_data=data
             )
+        elif provider == "gitlab":
+            name_parts = (data.get("name") or "").split(" ", 1)
+            return OAuthUserInfo(
+                provider=provider,
+                provider_user_id=str(data.get("id", "")),
+                email=data.get("email") or data.get("public_email"),
+                first_name=name_parts[0] if name_parts else None,
+                last_name=name_parts[1] if len(name_parts) > 1 else None,
+                username=data.get("username"),
+                avatar_url=data.get("avatar_url"),
+                raw_data=data
+            )
         elif provider == "microsoft":
             return OAuthUserInfo(
                 provider=provider,
@@ -730,7 +768,7 @@ async def oauth_login(provider: str, request: Request, next: str = Query("/dashb
     
     Redirects to provider's authorization page.
     
-    Providers: google, github, microsoft
+    Providers: google, github, gitlab, microsoft
     """
     path = f"/api/v1/auth/oauth/login/{provider}"
     cid = set_correlation_id(request.headers.get("X-Correlation-ID") if request else None)
@@ -745,7 +783,7 @@ async def oauth_login(provider: str, request: Request, next: str = Query("/dashb
             log_api_response(logger, "GET", path, 400, duration_ms=timer.duration_ms)
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Invalid provider: {provider}. Supported: google, github, microsoft"
+                detail=f"Invalid provider: {provider}. Supported: google, github, gitlab, microsoft"
             )
 
         config = OAUTH_PROVIDERS[provider]
@@ -778,6 +816,14 @@ async def oauth_login(provider: str, request: Request, next: str = Query("/dashb
                 "scope": " ".join(config["scopes"]),
                 "state": state,
                 "allow_signup": "true"
+            }
+        elif provider == "gitlab":
+            params = {
+                "client_id": config["client_id"],
+                "redirect_uri": callback_url,
+                "response_type": "code",
+                "scope": " ".join(config["scopes"]),
+                "state": state,
             }
         elif provider == "microsoft":
             params = {

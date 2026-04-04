@@ -1,6 +1,8 @@
 cors_config = {
     "allow_origins": [
         "http://localhost:3000",
+        "http://localhost:3011",
+        "http://localhost:3008",
         "http://localhost:80",
         "http://localhost:5002",
         "http://localhost:5001",
