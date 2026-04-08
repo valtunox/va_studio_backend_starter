@@ -16,9 +16,9 @@
 
 - **E-commerce**: No `Product`, `Order`, `Cart` (or similar) ORM; no schemas; no `app.services.ecommerce.routes` (loader points to it but the module does not exist).
 - **CRM**: No Lead/Contact/Pipeline ORM/schemas; no `app.services.crm.routes`.
-- **ERP**: No Inventory/HR/Finance ORM/schemas; no `app.services.erp.routes`.
+- **ERP**: No Inventory/Finance ORM/schemas; no `app.services.erp.routes`.
 - **Portfolio**: No `app.services.portfolio.routes` (only `app.services.saas.core.routes` exists).
-- **Leads / Candidates**: Same — no ORM, no schemas, no route modules.
+- **Leads**: Same — no ORM, no schemas, no route modules.
 
 So: **ORM and schemas only fully “work” for SaaS (billing, projects, notifications), Blog, and shared auth/users.** For ecommerce, blogging-as-feature, CRM, ERP, etc., the backend is missing the corresponding models, schemas, and route modules.
 
@@ -30,7 +30,7 @@ So: **ORM and schemas only fully “work” for SaaS (billing, projects, notific
    `TEMPLATE_TYPE` in settings (env) is read at startup. Only that template’s `required_services` are loaded (see `app/templates/registry.py` and `app/templates/service_loader.py`).
 
 2. **Router loading**  
-   `ServiceLoader.SERVICE_MODULES` maps names like `"ecommerce"` to `("app.services.ecommerce.routes", "router")`. Those modules don’t exist for ecommerce, crm, erp, portfolio, leads, candidates — so `load_router` returns `None` and no router is mounted. The app still starts; those use cases simply have no API.
+   `ServiceLoader.SERVICE_MODULES` maps names like `"ecommerce"` to `("app.services.ecommerce.routes", "router")`. Those modules don’t exist for ecommerce, crm, erp, portfolio, leads — so `load_router` returns `None` and no router is mounted. The app still starts; those use cases simply have no API.
 
 3. **Shared vs domain data**  
    - **Shared (all use cases):** User, auth, (optional) billing, notifications.  
@@ -48,7 +48,7 @@ So: **Yes, FastAPI can support all those use cases.** The gap is not FastAPI its
 - Add the missing pieces **per use case** when you need them:
   - **E-commerce:** ORM (e.g. `Product`, `Order`, `OrderItem`, `Cart`), schemas, `app.services.ecommerce.routes` (and point `SERVICE_MODULES["ecommerce"]` to it, or to a new path under `app/services/saas/ecommerce/routes.py` and fix the loader).
   - **CRM:** ORM (e.g. `Lead`, `Contact`, `Pipeline`, `Deal`), schemas, `app.services.crm.routes`.
-  - **ERP / Portfolio / Leads / Candidates:** same idea — ORM + schemas + routes, then register in registry + service_loader.
+  - **ERP / Portfolio / Leads:** same idea — ORM + schemas + routes, then register in registry + service_loader.
 - **Pros:** Smallest change, clear separation, only the code for the chosen template is loaded.  
 - **Cons:** To support “user picks ecommerce **or** blog” you either run multiple backends (one per template) or move to Option B.
 
@@ -71,7 +71,7 @@ So: **Yes, FastAPI can support all those use cases.** The gap is not FastAPI its
 
 - **Today:**  
   - **Yes** for: auth, users, projects, notifications, **blog** (Post, Category, Tag), **billing** (Subscription, Payment, Invoice).  
-  - **No** for: ecommerce, crm, erp, portfolio, leads, candidates — no ORM/schemas/routes yet.
+  - **No** for: ecommerce, crm, erp, portfolio, leads — no ORM/schemas/routes yet.
 - **After you add them:**  
   - **Option A:** ORM and schemas work the same way as blog/billing: add `app/orm/ecommerce.py`, `app/schemas/ecommerce.py`, and routes that use them; ensure the ecommerce router is loaded when `TEMPLATE_TYPE=ecommerce`.  
   - **Option B:** Same ORM/schemas, but you add a layer “this project is ecommerce, so allow only ecommerce (and shared) resources” and optionally tenant/project scoping (e.g. `Project.id` or `Tenant.id` on Product/Order).

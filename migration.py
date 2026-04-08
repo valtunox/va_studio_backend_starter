@@ -129,6 +129,8 @@ def check_connection(engine) -> bool:
 def create_tables(engine) -> tuple[int, int]:
     """
     Create all tables defined in ORM models that don't exist yet.
+    Creates tables individually (in FK-dependency order) so one failure
+    doesn't block the rest.
     Returns (created_count, total_count).
     """
     insp = inspect(engine)
@@ -137,13 +139,28 @@ def create_tables(engine) -> tuple[int, int]:
 
     new_tables = orm_tables - existing_before
 
+    # Try bulk create first (fastest path when no conflicts)
     try:
         Base.metadata.create_all(bind=engine, checkfirst=True)
+        return len(new_tables), len(orm_tables)
     except SQLAlchemyError as e:
-        logger.error(f"Error creating tables: {e}")
-        raise
+        logger.warning(f"Bulk create_all failed, falling back to per-table creation: {e}")
 
-    return len(new_tables), len(orm_tables)
+    # Fall back to creating tables one by one in FK-dependency order
+    # so parent tables are created before children.
+    created = 0
+    sorted_tables = Base.metadata.sorted_tables  # respects FK dependencies
+    for table in sorted_tables:
+        if table.name in existing_before:
+            continue
+        try:
+            table.create(bind=engine, checkfirst=True)
+            created += 1
+            logger.info(f"  + Created table: {table.name}")
+        except SQLAlchemyError as exc:
+            logger.warning(f"  SKIP table {table.name} — {exc}")
+
+    return created, len(orm_tables)
 
 
 def sync_columns(engine) -> int:
@@ -238,6 +255,63 @@ def get_migration_status(engine) -> dict:
 
 
 # ---------------------------------------------------------------------------
+# PK type mismatch repair
+# ---------------------------------------------------------------------------
+
+def repair_pk_type_mismatches(engine) -> None:
+    """
+    Detect tables where the live PK type differs from the ORM definition
+    (e.g. INTEGER vs UUID) and recreate them. Only acts on empty tables
+    to avoid data loss. Drops dependents (FKs) first.
+    """
+    insp = inspect(engine)
+    existing_tables = set(insp.get_table_names())
+
+    for table_name, table in Base.metadata.tables.items():
+        if table_name not in existing_tables:
+            continue
+
+        pk_cols = [c for c in table.columns if c.primary_key]
+        if not pk_cols:
+            continue
+
+        orm_pk = pk_cols[0]
+        orm_type = _sa_column_type_ddl(orm_pk).upper()
+
+        db_cols = {c["name"]: c for c in insp.get_columns(table_name)}
+        db_pk = db_cols.get(orm_pk.name)
+        if db_pk is None:
+            continue
+
+        db_type = str(db_pk["type"]).upper()
+
+        # Normalise for comparison
+        is_uuid_orm = "UUID" in orm_type
+        is_uuid_db = "UUID" in db_type
+        if is_uuid_orm == is_uuid_db:
+            continue
+
+        # Mismatch detected — only fix if table is empty
+        with engine.connect() as conn:
+            count = conn.execute(
+                text(f'SELECT COUNT(*) FROM "{table_name}"')
+            ).scalar()
+            if count > 0:
+                logger.warning(
+                    f"  PK type mismatch on {table_name}.{orm_pk.name} "
+                    f"(DB={db_type}, ORM={orm_type}) but table has {count} rows — skipping"
+                )
+                continue
+
+            logger.info(
+                f"  Fixing PK type mismatch: {table_name}.{orm_pk.name} "
+                f"{db_type} → {orm_type} (table is empty)"
+            )
+            conn.execute(text(f'DROP TABLE IF EXISTS "{table_name}" CASCADE'))
+            conn.commit()
+
+
+# ---------------------------------------------------------------------------
 # Public API — called by app.py lifespan on every startup/reload
 # ---------------------------------------------------------------------------
 
@@ -276,6 +350,12 @@ def run_migration() -> dict:
     # 4. Check connection
     if not check_connection(engine):
         return summary
+
+    # 4b. Fix known type mismatches (e.g. subscriptions.id INTEGER → UUID)
+    try:
+        repair_pk_type_mismatches(engine)
+    except Exception as e:
+        logger.warning(f"PK type repair skipped: {e}")
 
     # 5. Create missing tables
     try:

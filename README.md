@@ -396,8 +396,7 @@ va_studio_backend_starter/
 │   │   ├── saas/                 #   SaaS core (tenants, subscriptions)
 │   │   ├── crm/                  #   CRM (extensible)
 │   │   ├── erp/                  #   ERP (extensible)
-│   │   ├── leads/                #   Lead management
-│   │   └── candidates/           #   Candidate tracking
+│   │   └── leads/                #   Lead management
 │   │
 │   ├── templates/                # Template config & registry
 │   │   ├── registry.py           #   Template type definitions
@@ -581,7 +580,6 @@ Transparent about what's production-ready and what's scaffolded for extension:
 | **CRM** | Stub | Stub | Stub | -- | **Scaffolded** — Ready for implementation |
 | **ERP** | Stub | Stub | Stub | -- | **Scaffolded** — Ready for implementation |
 | **Leads** | Stub | -- | Stub | -- | **Scaffolded** — Ready for implementation |
-| **Candidates** | Stub | -- | Stub | -- | **Scaffolded** — Ready for implementation |
 | **AI Agents** | -- | -- | Stub | Stub | **Scaffolded** — LangChain stubs included |
 | **Portfolio** | -- | -- | Stub | -- | **Scaffolded** — Uses Blog + SaaS |
 

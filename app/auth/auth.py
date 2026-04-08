@@ -178,9 +178,16 @@ class UserRegisterRequest(BaseModel):
 
 
 class UserLoginRequest(BaseModel):
-    """User login request schema"""
-    email: EmailStrType = Field(..., description="User email")
+    """User login request schema — accepts email or username."""
+    email: Optional[EmailStrType] = Field(None, description="User email")
+    username: Optional[str] = Field(None, description="Username (alternative to email)")
     password: str = Field(..., description="User password")
+
+    @root_validator(pre=True)
+    def require_email_or_username(cls, values):
+        if not values.get("email") and not values.get("username"):
+            raise ValueError("Either email or username is required")
+        return values
 
 
 class UserResponse(BaseModel):
@@ -542,6 +549,37 @@ class AuthDatabaseManager:
             return None
         except Exception as e:
             logger.error(f"Error fetching user by email: {e}")
+            return None
+
+    def get_user_by_username(self, username: str) -> Optional[Dict[str, Any]]:
+        """Fetch user by username from Django users_user table."""
+        try:
+            conn = basic_postgres_connection()
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT id, email, username, password, first_name, last_name, phone,
+                       is_verified, is_active, is_staff, is_superuser, date_joined,
+                       last_login, organization_id, verification_code,
+                       mfa_enabled, mfa_secret, social_google, social_github, social_microsoft
+                FROM users_user
+                WHERE username = %s
+            """, (username,))
+            row = cursor.fetchone()
+            cursor.close()
+            conn.close()
+            if row:
+                return {
+                    "id": row[0], "email": row[1], "username": row[2], "password": row[3],
+                    "first_name": row[4], "last_name": row[5], "phone": row[6],
+                    "is_verified": row[7], "is_active": row[8], "is_staff": row[9],
+                    "is_superuser": row[10], "date_joined": row[11], "last_login": row[12],
+                    "organization_id": row[13], "verification_code": row[14],
+                    "mfa_enabled": row[15], "mfa_secret": row[16],
+                    "social_google": row[17], "social_github": row[18], "social_microsoft": row[19]
+                }
+            return None
+        except Exception as e:
+            logger.error(f"Error fetching user by username: {e}")
             return None
 
     def get_user_by_id(self, user_id: int) -> Optional[Dict[str, Any]]:
@@ -1578,25 +1616,32 @@ async def register(data: UserRegisterRequest, request: Request):
 @router.post("/login", response_model=Dict[str, Any])
 async def login(data: UserLoginRequest, request: Request):
     """
-    User login with email and password.
-    
+    User login with email/username and password.
+
+    Accepts either ``email`` or ``username`` to identify the account.
     Returns access and refresh tokens.
     """
     path = "/api/v1/auth/login"
+    identifier = data.email or data.username
     cid = set_correlation_id(request.headers.get("X-Correlation-ID") if request else None)
     log_api_request(
         logger, "POST", path,
-        body={"email": data.email},
+        body={"identifier": identifier},
         headers=dict(request.headers) if request else None,
         correlation_id=cid,
     )
     with RequestTimer() as timer:
-        user = auth_db.get_user_by_email(data.email)
+        # Look up by email first, fall back to username
+        user = None
+        if data.email:
+            user = auth_db.get_user_by_email(data.email)
+        if user is None and data.username:
+            user = auth_db.get_user_by_username(data.username)
         if not user:
             log_api_response(logger, "POST", path, 401, duration_ms=timer.duration_ms)
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid email or password"
+                detail="Invalid email/username or password"
             )
 
         if not verify_password(data.password, user["password"]):
